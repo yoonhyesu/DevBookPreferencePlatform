@@ -1,0 +1,105 @@
+<!-- 헤더 영역-->
+<div class="container">
+    <header class="lh-1">
+        <!-- 상단 로그인/회원가입 영역 -->
+        <div class="d-flex justify-content-end py-2 border-bottom">
+
+            <!-- 디버깅 정보 표시 -->
+            <div style="display:none">
+                유저 정보: {{ printf "%#v" .user }}
+            </div>
+
+            {{ if .user }}
+            <div class="me-4">
+                {{ if .user.IsAdmin }}
+                <span class="me-3">관리자 {{ .user.Username }}님 환영합니다</span>
+                {{ else }}
+                <span class="me-3">{{ .user.Username }}님 환영합니다</span>
+                {{ end }}
+                <a class="btn btn-sm btn-outline-default me-2" id="logoutBtn">로그아웃</a>
+            </div>
+            {{ else }}
+            <div class="me-3">
+                <a class="btn btn-sm btn-outline-default me-2" href="/login">로그인</a>
+                <div class="vr mx-lg-2 text-dark" style="position: relative; top: 4px;"></div>
+                <a class="btn btn-sm btn-outline-default" href="/join">회원가입</a>
+            </div>
+            {{ end }}
+        </div>
+
+        <!-- 로고, 검색, 프로필 영역 -->
+        <div class="row flex-nowrap justify-content-between align-items-center py-3">
+            <div class="col-4 d-flex align-items-center">
+                <img src="/assets/images/IMG_0023.PNG" alt="logo" width="100" height="100">
+                <a class="blog-header-logo text-body-emphasis text-decoration-none ms-3"
+                    style="font-family: 'Gasoek One', serif;" href="/">
+                    <span style="color:rgb(77, 122, 248);">개</span>발자
+                    <span style="color:rgb(77, 122, 248);">북 </span>
+                    <span style="color:rgb(77, 122, 248);">취</span>향
+                </a>
+            </div>
+            <div class="col-4 d-flex justify-content-end align-items-center">
+                <div class="search-container d-flex align-items-center me-3">
+                    <input type="search" class="form-control form-control-sm" placeholder="검색어를 입력하세요"
+                        aria-label="Search">
+                    <button class="btn btn-link link-secondary" type="button" aria-label="Search">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="currentColor"
+                            stroke-linecap="round" stroke-linejoin="round" stroke-width="2" role="img"
+                            viewBox="0 0 24 24">
+                            <title>Search</title>
+                            <circle cx="10.5" cy="10.5" r="7.5" />
+                            <path d="M21 21l-5.2-5.2" />
+                        </svg>
+                    </button>
+                </div>
+                {{ if .user }}
+                <a href="/account/profile">
+                    <img src="/assets/images/profile.PNG" alt="프로필" width="70" height="70" class="rounded-circle">
+                </a>
+                {{ else }}
+                <a href="/login" onclick="alert('로그인이 필요한 서비스입니다.');">
+                    <img src="/assets/images/profile.PNG" alt="프로필" width="70" height="70" class="rounded-circle">
+                </a>
+                {{ end }}
+            </div>
+        </div>
+    </header>
+
+    <div class="nav py-1 mb-3 border-bottom">
+        <nav class="nav nav-underline justify-content-center w-100">
+            <a class="nav-item nav-link link-body-emphasis mx-4" href="/about">
+                <img src="/assets/images/IMG_0031.PNG" alt="메뉴 아이콘" height="30">
+            </a>
+            <a class="nav-item nav-link link-body-emphasis mx-4" href="/category/tag">분야별 추천</a>
+            <a class="nav-item nav-link link-body-emphasis mx-4" href="/category/dev">개발자의 추천 도서!
+            </a>
+            <div class="nav-item dropdown mx-4">
+                <a class="nav-link link-body-emphasis dropdown-toggle" id="navbarDropdown" role="button"
+                    data-bs-toggle="dropdown" aria-expanded="false">
+                    성장 단계별 추천도서 알아보기
+                </a>
+                <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                    <li><a class="dropdown-item" href="/category/step/beginner">입문</a></li>
+                    <li><a class="dropdown-item" href="/category/step/elementary">초급</a></li>
+                    <li><a class="dropdown-item" href="/category/step/intermediate">중급</a></li>
+                    <li><a class="dropdown-item" href="/category/step/advanced">고급</a></li>
+                </ul>
+            </div>
+            <!-- 관리자 메뉴 -->
+            {{ if and .user .user.IsAdmin}}
+            <div class="nav-item dropdown mx-4">
+                <a class="nav-link link-body-emphasis dropdown-toggle" href="#" id="navbarDropdown" role="button"
+                    data-bs-toggle="dropdown" aria-expanded="false">
+                    관리자
+                </a>
+                <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                    <li><a class="dropdown-item" href="/admin/user" style="display: none;">회원 관리</a></li>
+                    <li><a class="dropdown-item" href="/admin/book">도서 관리</a></li>
+                    <li><a class="dropdown-item" href="/admin/dev">개발자 정보관리</a></li>
+                    <li><a class="dropdown-item" href="/admin/notice">공지사항 관리</a></li>
+                </ul>
+            </div>
+            {{ end }}
+        </nav>
+    </div>
+</div>
