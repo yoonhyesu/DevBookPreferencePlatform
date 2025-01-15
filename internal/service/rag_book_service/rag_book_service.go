@@ -295,7 +295,9 @@ func (rs *RagServer) fetchLatestBooks() *BookSearchResponse {
 		if book.TitleURL == "" || book.PublishPreDate > time.Now().Format("20060102") {
 			continue
 		}
-
+		if book.EaAddCode == "15320" {
+			continue
+		}
 		// 키워드 체크 - 제목이나 목차 중 하나만 있어도 통과
 		hasKeyword := containsITKeyword(book.Title, keywords) || containsITKeyword(book.Cnt, keywords)
 		if !hasKeyword {
