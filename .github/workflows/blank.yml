@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Login to DockerHub
         uses: docker/login-action@v1
@@ -21,11 +21,11 @@ jobs:
           username: ${{secrets.DOCKERHUB_USERNAME}}
           password: ${{secrets.DOCKERHUB_TOKEN}}
       
-      - name: build and release to DockerHub
+      - name: Build and release to DockerHub
         env:
           NAME: yoonhyesu
           REPO: dbp
         run: |
-          docker build -t $REPO .
+          docker build --no-cache -t $REPO . # --no-cache 옵션 추가!!!
           docker tag $REPO:latest $NAME/$REPO:latest
           docker push $NAME/$REPO:latest
