@@ -295,7 +295,8 @@ func (rs *RagServer) fetchLatestBooks() *BookSearchResponse {
 		if book.TitleURL == "" || book.PublishPreDate > time.Now().Format("20060102") {
 			continue
 		}
-		if book.EaAddCode == "15320" {
+		if book.EaAddCode == "15320" || book.EaAddCode == "" {
+			log.Printf("제외된 도서 (부가기호: %s): %s", book.EaAddCode, book.Title)
 			continue
 		}
 		// 키워드 체크 - 제목이나 목차 중 하나만 있어도 통과
