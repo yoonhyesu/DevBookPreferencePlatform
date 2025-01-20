@@ -50,8 +50,8 @@ func SetupRouter(g *gin.Engine, db *database.MariaDBHandler, redis *database.Red
 	devPath := filepath.Join("/app", "storage", "image", "dev")
 	// log.Printf("업로드 경로: %s", uploadPath)
 	// g.Static("/uploads", uploadPath)
-	g.Static("/image/profile", profilePath)
-	g.Static("/image/dev", devPath)
+	g.Static("/storage/image/profile", profilePath)
+	g.Static("/storage/image/dev", devPath)
 	g.StaticFile("/favicon.ico", "../favicon.ico")
 
 	// 템플릿 경로 설정

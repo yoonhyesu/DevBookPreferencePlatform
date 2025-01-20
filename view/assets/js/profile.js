@@ -45,7 +45,7 @@ function UserInfoLoad() {
 
         // 이미지 경로가 있을 때만 설정하도록 수정
         if (response.PROFILE_IMAGE_PATH) {
-            const imagePath = response.PROFILE_IMAGE_PATH.replace(/\\/g, '/');
+            const imagePath = '/storage' + response.PROFILE_IMAGE_PATH.replace(/\\/g, '/');
             preview.src = imagePath;
             console.log('변환된 이미지 경로:', imagePath);
         } else {
@@ -90,7 +90,7 @@ function updateProfile() {
         success: function (response) {
             console.log("서버 응답:", response); // 디버깅용
             if (response.PROFILE_IMAGE_PATH) {
-                $('#profile-img').attr('src', response.PROFILE_IMAGE_PATH);
+                $('#profile-img').attr('src', '/storage' + response.PROFILE_IMAGE_PATH);
             }
             alert('프로필이 성공적으로 수정되었습니다');
             location.reload();

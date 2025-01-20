@@ -18,6 +18,7 @@ function updateImageDisplay() {
 const fileTypes = [
     'image/jpeg',
     'image/png',
+    'image/jpg'
 ]
 
 // 이미지 파일 유효성 검사
@@ -55,7 +56,7 @@ function dev_add() {
         success: function (response) {
             console.log('서버응답;', response);
             if (response.PROFILE_IMAGE_PATH) {
-                $('#profile-img').attr('scr', response.PROFILE_IMAGE_PATH);
+                $('#profile-img').attr('src', '/storage' + response.PROFILE_IMAGE_PATH);
             }
             alert("개발자 등록에 성공했습니다");
             $('#dev-add').modal('hide');
