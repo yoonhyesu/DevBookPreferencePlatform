@@ -315,18 +315,9 @@ $(document).ready(function () {
 
         // 이미지가 있는 경우 미리보기 표시 및 hidden input 추가
         if (selectedData.PROFILE_IMAGE_PATH) {
-            $('#update-profile-img').attr('src', selectedData.PROFILE_IMAGE_PATH);
-            // hidden input 추가 또는 업데이트
-            if (!$('#existing_image_path').length) {
-                $('<input>').attr({
-                    type: 'hidden',
-                    id: 'existing_image_path',
-                    name: 'EXISTING_PROFILE_IMAGE',
-                    value: selectedData.PROFILE_IMAGE_PATH
-                }).appendTo('#dev-update form');
-            } else {
-                $('#existing_image_path').val(selectedData.PROFILE_IMAGE_PATH);
-            }
+            const imagePath = '/storage/image/dev' + selectedData.PROFILE_IMAGE_PATH.replace(/\\/g, '/');
+            $('#update-profile-img').attr('src', imagePath);
+            $('#existing_image_path').val(imagePath);
         }
 
         // Bootstrap 5 방식으로 모달 표시
@@ -372,7 +363,8 @@ $(document).ready(function () {
             success: function (response) {
                 console.log('서버응답:', response);
                 if (response.PROFILE_IMAGE_PATH) {
-                    $('#update-profile-img').attr('src', response.PROFILE_IMAGE_PATH);
+                    const imagePath = '/storage/image/dev' + response.PROFILE_IMAGE_PATH.replace(/\\/g, '/');
+                    $('#update-profile-img').attr('src', imagePath);
                 }
                 alert("개발자 수정에 성공했습니다");
                 $('#dev-update').modal('hide');

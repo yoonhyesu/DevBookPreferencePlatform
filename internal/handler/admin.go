@@ -93,7 +93,7 @@ func (a *AdminHandler) AddDevs(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "이미지 저장 중 오류 발생"})
 			return
 		}
-		dev.ProfileImagePath = "/" + filePath
+		dev.ProfileImagePath = filepath.Join("/storage/image/dev", newFileName)
 
 		if err := a.repo.AddDev(dev); err != nil {
 			log.Printf("개발자 프로필 수정 실패: %v", err)
@@ -164,7 +164,7 @@ func (a *AdminHandler) UpdateDevs(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "이미지 저장 중 오류 발생"})
 			return
 		}
-		dev.ProfileImagePath = "/" + filePath
+		dev.ProfileImagePath = filepath.Join("/storage/image/dev", newFileName)
 	} else {
 		// 이미지가 업로드되지 않은 경우 기존 이미지 경로 가져오기
 		existingDev, err := a.repo.GetDevID(dev.DevID)
