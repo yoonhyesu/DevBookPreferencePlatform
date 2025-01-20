@@ -29,42 +29,6 @@
     <link href="/assets/styles/index.css" rel="stylesheet">
     <link href="/assets/styles/app.min.css" rel="stylesheet">
     <link rel="stylesheet" href="/assets/styles/bootstrap-icons.css" />
-
-    <script type="text/javascript">
-
-        $(function () {
-
-            let loadFile = function (event) {
-                var reader = new FileReader();
-                reader.onload = function () {
-                    var output = document.getElementById('profile-img');
-                    if (event.target.files[0].type.match('image.*')) {
-                        output.src = reader.result;
-                    } else {
-                        event.target.value = '';
-                        alert('please select a valid image');
-                    }
-                };
-                if (event.target.files[0]) {
-                    reader.readAsDataURL(event.target.files[0]);
-                }
-
-            };
-
-            /* Choices JS */
-            var choices = new Choices('#language', {
-                allowSearch: false,
-                removeItemButton: true,
-
-            }).setValue([]);
-
-            // for profile photo update
-            let ProfileChange = document.querySelector('#profile-change');
-            ProfileChange.addEventListener('change', loadFile);
-
-        });
-
-    </script>
 </head>
 
 <body>
@@ -183,13 +147,15 @@
                         <div class="row g-3 mb-3">
                             <div class="col-12 col-lg-3">
                                 <div class="user-image">
-                                    <div class="profile mb-3">
-                                        <img src="/assets/images/profile.png" alt="profile image" id="profile-img" />
+                                    <div class="profile mb-3 preview">
+                                        <img src="/assets/images/profile.png" alt="profile image" name="profile_image"
+                                            id="profile-img" />
                                     </div>
-                                    <!-- <a class="btn btn-outline-secondary btn-sm d-inline-flex align-items-center">
-                                        <input type="file" name="photo" class="position-absolute w-100 h-100 op-0"
-                                            id="profile-change">변경
-                                    </a> -->
+                                    <a class="btn btn-outline-secondary btn-sm d-inline-flex align-items-center">
+                                        <input type="file" id="image_uploads" name="image_uploads"
+                                            class="position-absolute w-100 h-100 op-0"
+                                            accept="image/jpeg, image/png">변경(Png/JPG)
+                                    </a>
                                 </div>
                             </div>
                             <div class="col-12 col-lg-9">
@@ -202,7 +168,7 @@
                                     </div>
                                     <div class="col-12">
                                         <label for="" class="form-label">이름</label>
-                                        <input type="text" class="form-control" id="user_name" placeholder=""
+                                        <input type="text" class="form-control" id="user_name" name="user_name"
                                             value="{{ .user.Username}}" required="" />
                                         <div class="invalid-feedback">이름을 입력해 주세요.</div>
                                     </div>
@@ -244,12 +210,12 @@
                         <div class="col-12 mb-3">
                             <label for="userEmail" class="form-label">Email</label>
                             <input type="email" class="form-control" id="userEmail" value="{{ .user.Email }}"
-                                placeholder="" readonly>
+                                name="userEmail" readonly>
                             <div class="invalid-feedback">Email를 입력해 주세요.</div>
                         </div>
                         <div class="col-12 mb-3">
                             <label for="userPhone" class="form-label">전화번호</label>
-                            <input type="tel" class="form-control" id="userPhone" value="" placeholder="" readonly>
+                            <input type="tel" class="form-control" id="userPhone" value="" name="userPhone" readonly>
                             <div class="invalid-feedback">전화번호를 입력해 주세요.</div>
                         </div>
                         <div class="col-12 mb-3">

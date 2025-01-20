@@ -10,7 +10,7 @@ window.notice_add = function () {
     const topyn = $('#notice_topyn').val();
 
     if (!title || !content) {
-        alert('제목과 내용을 모두 입력해주세요!!!');
+        alert('제목과 내용을 모두 입력해주세요');
         return;
     }
 
@@ -24,12 +24,12 @@ window.notice_add = function () {
             TOP_YN: topyn === 'true'
         }),
         success: function (response) {
-            alert("공지 등록에 성공했습니다!!!");
+            alert("공지 등록에 성공했습니다");
             $('#notice-add').modal('hide');
             location.reload();
         },
         error: function (error) {
-            alert('공지 등록에 실패했습니다!!!');
+            alert('공지 등록에 실패했습니다');
             console.error('에러:', error);
         }
     });

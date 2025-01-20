@@ -22,7 +22,6 @@
 
         <!-- jquery -->
         <script src="/assets/js/jquery.min.js"></script>
-        <script src="/assets/js/book_category.js"></script>
 
         <!-- CHOICES CSS -->
         <link type="text/css" href="/assets/styles/choices.min.css" rel="stylesheet">
@@ -226,19 +225,22 @@
                             <li class="nav-item" role="presentation">
                                 <button class="nav-link active" id="book-intro" data-bs-toggle="tab"
                                     data-bs-target="#book-intro-pane" type="button" role="tab"
-                                    aria-controls="book-intro-pane" aria-selected="true">책 소개</button>
+                                    aria-controls="book-intro-pane" aria-selected="true">책 소개 📚</button>
                             </li>
                             <li class="nav-item" role="presentation">
                                 <button class="nav-link" id="book-review" data-bs-toggle="tab"
                                     data-bs-target="#book-review-pane" type="button" role="tab"
-                                    aria-controls="book-review-pane" aria-selected="false">책챗리뷰</button>
+                                    aria-controls="book-review-pane" aria-selected="false">책챗(Book Chat)💬</button>
                             </li>
                         </ul>
                         <div class="tab-content" id="myTabContent">
                             <div class="tab-pane fade show active" id="book-intro-pane" role="tabpanel"
                                 aria-labelledby="book-intro" tabindex="0">
                                 <div class="mt-4">
-                                    <h5 class="fw-semibold mb-4">줄거리</h5>
+                                    <h5 class="fw-semibold mt-5 mb-4">요약</h5>
+                                    <p>{{ .BookDetail.Description }}</p>
+
+                                    <h5 class="fw-semibold mt-5 mb-4">줄거리</h5>
                                     <p>{{ .BookDetail.Summary }}</p>
 
                                     <h5 class="fw-semibold mt-5 mb-4">목차</h5>
@@ -253,19 +255,14 @@
                                             <div class="chat-header border-bottom p-3">
                                                 <div class="d-flex align-items-center justify-content-between">
                                                     <div class="chat-title">
-                                                        <h5 class="mb-0" id="book-title" data-book-id="{{ .BOOK_ID }}">
-                                                            {{ .BookDetail.BookTitle }}</h5>
-                                                        <p class="text-muted mb-0">실시간 채팅</p>
+                                                        <h5 class="mb-0">{{ .BookDetail.BookTitle }}</h5>
+                                                        <p class="text-muted mb-0">💡책에 대하여 마음껏 이야기해 보세요!</p>
                                                     </div>
-                                                    <ul class="list-unstyled d-flex align-items-center mb-0">
-                                                        <li><span class="chat-icon me-3">📚</span></li>
-                                                        <li><span class="chat-icon">💬</span></li>
-                                                    </ul>
                                                 </div>
                                             </div>
 
                                             <!-- 채팅 메시지 영역 -->
-                                            <div class="chat-body" id="msgChat">
+                                            <div class="chat-body" id="chat-messages">
                                                 <!-- 메시지들이 여기에 동적으로 추가됨 -->
                                             </div>
 
@@ -299,8 +296,12 @@
         <!-- chat -->
         <script src="/assets/js/common-chat.js"></script>
 
-        <!-- 현재 사용자 정보 (숨김) -->
-        <input type="hidden" id="current-user" data-user-id="{{ .User.ID }}">
+        <!-- 사용자 정보는 숨겨서 한 번만 포함 -->
+        <div id="book-title" data-book-id="{{ .BookDetail.BookID }}" style="display: none;"></div>
+        <div id="current-user" data-user-id="{{ .user.UserId }}" data-user-name="{{ .user.Username }}"
+            style="display: none;">
+        </div>
+    </div>
 </body>
 
 </html>

@@ -4,6 +4,7 @@ import (
 	"DBP/internal/model"
 
 	"log"
+	"strings"
 )
 
 // 태그 조회
@@ -55,31 +56,51 @@ func (m *CommonRepo) GetTagWithBookList(tagID int) []model.TagWithBook {
 	return all
 }
 
-// 개발자 리스트 조회
+// 개발자 리스트 조회 - DevInfo 타입으로 변경
 func (m *CommonRepo) GetRecommendDevList() []model.DevInfo {
 	rows, err := m.mariaDB.Connection.Query(`
-	SELECT ID, DEV_NAME, DEV_DETAIL_NAME, DEV_HISTORY, VIEW_YN, DEL_YN
-FROM dbp.dev_infos
-WHERE DEL_YN = FALSE
-	`)
+	SELECT 
+		ID, 
+		DEV_NAME, 
+		DEV_DETAIL_NAME, 
+		DEV_HISTORY,
+		PROFILE_IMAGE_PATH,
+		VIEW_YN, 
+		DEL_YN
+	FROM dbp.dev_infos
+	WHERE VIEW_YN = TRUE AND DEL_YN = FALSE`)
+
 	if err != nil {
 		log.Println(err)
 		return []model.DevInfo{}
 	}
-	all := []model.DevInfo{}
-	var c1, c2, c3, c4 string
-	var c5, c6 bool
+
+	var devList []model.DevInfo
 	for rows.Next() {
-		err = rows.Scan(&c1, &c2, &c3, &c4, &c5, &c6)
+		var dev model.DevInfo
+		err = rows.Scan(
+			&dev.DevID,
+			&dev.DevName,
+			&dev.DevDetailName,
+			&dev.DevHistory,
+			&dev.ProfileImagePath,
+			&dev.ViewYN,
+			&dev.DelYN,
+		)
 		if err != nil {
-			log.Println("개발자 데이터 스캔 중 오류 발생:", err)
+			log.Println("개발자 정보 스캔 중 오류:", err)
 			continue
 		}
-		temp := model.DevInfo{DevID: c1, DevName: c2, DevDetailName: c3, DevHistory: c4, ViewYN: c5, DelYN: c6}
-		all = append(all, temp)
+
+		// 이미지 경로 처리
+		if dev.ProfileImagePath != "" {
+			dev.ProfileImagePath = strings.ReplaceAll(dev.ProfileImagePath, "\\", "/")
+			log.Printf("개발자 %s의 이미지 경로 변환: %s", dev.DevName, dev.ProfileImagePath)
+		}
+
+		devList = append(devList, dev)
 	}
-	log.Println("개발자 조회:", all)
-	return all
+	return devList
 }
 
 // 개발자 상세 정보 조회
@@ -89,29 +110,37 @@ func (m *CommonRepo) GetDevInfo(devID string) []model.DevDetail {
 		ID, 
 		DEV_NAME, 
 		DEV_DETAIL_NAME, 
-		DEV_HISTORY, 
+		DEV_HISTORY,
+		PROFILE_IMAGE_PATH,
 		VIEW_YN, 
 		DEL_YN
 	FROM dbp.dev_infos
 	WHERE ID = ? AND DEL_YN = FALSE`, devID)
 
 	all := []model.DevDetail{}
-	var c1, c2, c3, c4 string
-	var c5, c6 bool
+	var c1, c2, c3, c4, c5 string
+	var c6, c7 bool
 
-	err := row.Scan(&c1, &c2, &c3, &c4, &c5, &c6)
+	err := row.Scan(&c1, &c2, &c3, &c4, &c5, &c6, &c7)
 	if err != nil {
 		log.Println("개발자 정보 조회 중 오류:", err)
 		return []model.DevDetail{}
 	}
 
+	// 이미지 경로 처리
+	if c5 != "" {
+		c5 = strings.ReplaceAll(c5, "\\", "/")
+		log.Printf("개발자 %s의 이미지 경로 변환: %s", c2, c5)
+	}
+
 	temp := model.DevDetail{
-		DevID:         c1,
-		DevName:       c2,
-		DevDetailName: c3,
-		DevHistory:    c4,
-		ViewYN:        c5,
-		DelYN:         c6,
+		DevID:            c1,
+		DevName:          c2,
+		DevDetailName:    c3,
+		DevHistory:       c4,
+		ProfileImagePath: c5,
+		ViewYN:           c6,
+		DelYN:            c7,
 	}
 	all = append(all, temp)
 	log.Println("개발자 상세정보:", all)
@@ -126,9 +155,11 @@ func (m *CommonRepo) GetDevRecommendedBooks(devID string) []model.DevBookLikeRea
 		A.DEV_RECOMMEND_REASON,
 		B.BOOK_ID,
 		B.BOOK_TITLE,
-		B.COVER_URL
+		B.COVER_URL,
+		C.PROFILE_IMAGE_PATH
 	FROM dbp.dev_recommends A
 	INNER JOIN dbp.BOOK_INFOS B ON A.BOOK_ID = B.BOOK_ID 
+	INNER JOIN dbp.dev_infos C ON A.DEV_ID = C.ID
 	WHERE A.DEL_YN = 0 AND A.DEV_ID = ?`, devID)
 
 	if err != nil {
@@ -140,7 +171,7 @@ func (m *CommonRepo) GetDevRecommendedBooks(devID string) []model.DevBookLikeRea
 	for rows.Next() {
 		var book model.DevBookLikeReason
 		err = rows.Scan(&book.DevReasonID, &book.DevReason,
-			&book.BookID, &book.BookTitle, &book.CoverURL)
+			&book.BookID, &book.BookTitle, &book.CoverURL, &book.ProfileImagePath)
 		if err != nil {
 			log.Println("책 정보 스캔 중 오류:", err)
 			continue

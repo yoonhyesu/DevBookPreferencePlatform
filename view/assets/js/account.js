@@ -83,11 +83,11 @@ $('#pw_change_btn').on('click', function (e) {
                 NEW_PASSWORD: $('#new_pw').val()
             })
         }).done(function (response) {
-            alert('비밀번호가 성공적으로 변경되었습니다!!!');
+            alert('비밀번호가 성공적으로 변경되었습니다');
             location.reload();
         }).fail(function (error) {
             console.error('비밀번호 변경 실패:', error);
-            alert(error.responseJSON?.error || '비밀번호 변경에 실패했습니다!!!');
+            alert(error.responseJSON?.error || '비밀번호 변경에 실패했습니다');
         });
     }
 });

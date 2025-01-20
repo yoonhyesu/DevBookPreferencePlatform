@@ -28,7 +28,7 @@ jobs:
         env:
           NAME: yoonhyesu
           REPO: dbp
-          TAG: ${{ github.sha }}  # 커밋 해시를 태그로 사용!!!
+          TAG: ${{ github.sha }}  # 커밋 해시를 태그로 사용
         run: |
           docker build --no-cache -t $NAME/$REPO:$TAG -t $NAME/$REPO:latest .
           docker push $NAME/$REPO:$TAG

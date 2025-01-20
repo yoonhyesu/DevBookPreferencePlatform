@@ -54,14 +54,14 @@ $(document).ready(function () {
 
                     displaySearchResults(response.docs);
                 } else {
-                    alert('검색 결과가 없습니다!!!');
+                    alert('검색 결과가 없습니다');
                     $('#book-search').modal('hide');
                     $('#book-add').modal('show');
                 }
             },
             error: function (xhr, status, error) {
                 console.error('검색 오류:', error);
-                alert('검색 중 오류가 발생했습니다!!!');
+                alert('검색 중 오류가 발생했습니다');
             }
         });
     });
@@ -100,7 +100,7 @@ $(document).ready(function () {
     $('#selectBookBtn').click(function () {
         const selectedRadio = $('input[name="bookSelect"]:checked');
         if (selectedRadio.length === 0) {
-            alert('선택된 도서가 없습니다!!!');
+            alert('선택된 도서가 없습니다');
             return;
         }
 
@@ -134,7 +134,7 @@ $(document).ready(function () {
             $('#book-add').modal('show');
         } catch (error) {
             console.error('도서 데이터 파싱 오류:', error);
-            alert('도서 데이터 처리 중 오류가 발생했습니다!!!');
+            alert('도서 데이터 처리 중 오류가 발생했습니다');
         }
     });
 
@@ -148,7 +148,7 @@ $(document).ready(function () {
         const emptyFields = requiredFields.filter(fieldId => !$(`#${fieldId}`).val().trim());
 
         if (emptyFields.length > 0) {
-            alert('필수 정보를 모두 입력해주세요!!!');
+            alert('필수 정보를 모두 입력해주세요');
             return;
         }
 
@@ -180,7 +180,7 @@ $(document).ready(function () {
 
         // 최소 1명 이상의 추천 프로그래머 필요
         if (devContents.length === 0) {
-            alert('최소 1명 이상의 추천 프로그래머가 필요합니다!!!');
+            alert('최소 1명 이상의 추천 프로그래머가 필요합니다');
             return;
         }
 
@@ -215,14 +215,14 @@ $(document).ready(function () {
             contentType: 'application/json',
             data: JSON.stringify(sendData),
             success: function (response) {
-                alert('책 데이터가 성공적으로 저장되었습니다!!!');
+                alert('책 데이터가 성공적으로 저장되었습니다');
                 $('#book-add').modal('hide');
                 location.reload();
             },
             error: function (xhr, status, error) {
                 console.error('전송된 데이터:', sendData);
                 console.error('에러:', error);
-                alert('책 데이터 저장 중 오류가 발생했습니다!!!');
+                alert('책 데이터 저장 중 오류가 발생했습니다');
             }
         });
     });
@@ -304,7 +304,7 @@ $(document).ready(function () {
     // 프로그래머 선택 버튼 클릭 이벤트
     $('#selectDevBtn').on("click", function () {
         if (!selectedData) {
-            alert('프로그래머를 선택해주세요!!!');
+            alert('프로그래머를 선택해주세요');
             return;
         }
 

@@ -8,9 +8,13 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
+	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 type AdminHandler struct {
@@ -29,36 +33,158 @@ func (a *AdminHandler) GetDevList(c *gin.Context) {
 	c.JSON(http.StatusOK, devs)
 }
 
+// 개발자 프로필 이미지 환경변수 가져오기
+func getDevImagePath() string {
+	if path := os.Getenv("DEV_PATH"); path != "" {
+		return path
+	}
+	return ""
+}
+
 // 개발자 등록 API
 func (a *AdminHandler) AddDevs(c *gin.Context) {
+	form, err := c.MultipartForm()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "폼 데이터 처리 중 오류가 발생했습니다"})
+		return
+	}
+
 	var dev model.AddDevs
-	if err := c.ShouldBindJSON(&dev); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
+
+	// 폼 데이터 바인딩
+	if values, exists := form.Value["DEV_NAME"]; exists && len(values) > 0 {
+		dev.DevName = values[0]
+	}
+	if values, exists := form.Value["DEV_DETAIL_NAME"]; exists && len(values) > 0 {
+		dev.DevDetailName = values[0]
+	}
+	if values, exists := form.Value["DEV_HISTORY"]; exists && len(values) > 0 {
+		dev.DevHistory = values[0]
+	}
+	if values, exists := form.Value["VIEW_YN"]; exists && len(values) > 0 {
+		viewYN, err := strconv.ParseBool(values[0])
+		if err == nil {
+			dev.ViewYN = viewYN
+		}
 	}
 
-	if err := a.repo.AddDev(dev); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
+	// 이미지 처리
+	if files := form.File["PROFILE_IMAGE"]; len(files) > 0 {
+		file := files[0]
 
-	c.JSON(http.StatusOK, gin.H{"message": "개발자가 성공적으로 등록되었습니다"})
+		// 파일 확장자 가져오기
+		ext := filepath.Ext(file.Filename)
+		// 환경변수 가져오기
+		uploadDir := filepath.Join(".", getDevImagePath())
+		log.Printf("업로드 경로: %s", uploadDir)
+
+		// 환경변수로 설정된 디렉토리 참고
+		if err := os.MkdirAll(uploadDir, 0755); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "디렉토리 생성 중 오류"})
+			return
+		}
+
+		// 새로운 파일명 생성 (UUID + 확장자)
+		newFileName := uuid.New().String() + ext
+		filePath := filepath.Join(uploadDir, newFileName)
+
+		// 파일 저장
+		if err := c.SaveUploadedFile(file, filePath); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "이미지 저장 중 오류 발생"})
+			return
+		}
+		dev.ProfileImagePath = "/" + filePath
+
+		if err := a.repo.AddDev(dev); err != nil {
+			log.Printf("개발자 프로필 수정 실패: %v", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{
+			"messsage":           "프로필이 성공적으로 수정되었습니다",
+			"PROFILE_IMAGE_PATH": dev.ProfileImagePath,
+		})
+
+	}
 }
 
 // 개발자 수정
 func (a *AdminHandler) UpdateDevs(c *gin.Context) {
-	var dev model.AddDevs
-	if err := c.ShouldBindJSON(&dev); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	form, err := c.MultipartForm()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "폼 데이터 처리 중 오류가 발생했습니다"})
 		return
 	}
 
+	var dev model.AddDevs
+
+	// 폼 데이터 바인딩
+	if values, exists := form.Value["DEV_NAME"]; exists && len(values) > 0 {
+		dev.DevName = values[0]
+	}
+	if values, exists := form.Value["DEV_DETAIL_NAME"]; exists && len(values) > 0 {
+		dev.DevDetailName = values[0]
+	}
+	if values, exists := form.Value["DEV_HISTORY"]; exists && len(values) > 0 {
+		dev.DevHistory = values[0]
+	}
+	if values, exists := form.Value["VIEW_YN"]; exists && len(values) > 0 {
+		viewYN, err := strconv.ParseBool(values[0])
+		if err == nil {
+			dev.ViewYN = viewYN
+		}
+	}
+	if values, exists := form.Value["DEV_ID"]; exists && len(values) > 0 {
+		dev.DevID = values[0]
+
+	}
+
+	// 이미지 처리
+	if files := form.File["PROFILE_IMAGE"]; len(files) > 0 {
+		file := files[0]
+
+		// 파일 확장자 가져오기
+		ext := filepath.Ext(file.Filename)
+		// 환경변수 가져오기
+		uploadDir := filepath.Join(".", getDevImagePath())
+		log.Printf("업로드 경로: %s", uploadDir)
+
+		// 환경변수로 설정된 디렉토리 참고
+		if err := os.MkdirAll(uploadDir, 0755); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "디렉토리 생성 중 오류"})
+			return
+		}
+
+		// 새로운 파일명 생성 (UUID + 확장자)
+		newFileName := uuid.New().String() + ext
+		filePath := filepath.Join(uploadDir, newFileName)
+
+		// 파일 저장
+		if err := c.SaveUploadedFile(file, filePath); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "이미지 저장 중 오류 발생"})
+			return
+		}
+		dev.ProfileImagePath = "/" + filePath
+	} else {
+		// 이미지가 업로드되지 않은 경우 기존 이미지 경로 가져오기
+		existingDev, err := a.repo.GetDevID(dev.DevID)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "기존 개발자 정보 조회 중 오류 발생"})
+			return
+		}
+		dev.ProfileImagePath = existingDev.ProfileImagePath
+	}
+
 	if err := a.repo.UpdateDev(dev); err != nil {
+		log.Printf("개발자 프로필 수정 실패: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "개발자 정보가 성공적으로 수정되었습니다"})
+	c.JSON(http.StatusOK, gin.H{
+		"message":            "개발자 정보가 성공적으로 수정되었습니다",
+		"PROFILE_IMAGE_PATH": dev.ProfileImagePath,
+	})
 }
 
 // 개발자 삭제

@@ -6,8 +6,10 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -49,7 +51,7 @@ type RagBook struct {
 	EaISBN         string `json:"EA_ISBN"`         // ISBN
 	EaAddCode      string `json:"EA_ADD_CODE"`     // 부가기호
 	TitleURL       string `json:"TITLE_URL"`       // 표지 이미지 URL
-	Cnt            string `json:"BOOK_TB_CNT"`     // 목차
+	Cnt            string `json:"BOOK_TB_CNT_URL"` // 목차
 	RecommendUser  string `json:"RECOMMEND_USER"`  // 추천 대상
 	Keywords       string `json:"KEYWORDS"`        // 키워드
 }
@@ -74,6 +76,18 @@ type Keywords struct {
 
 // 키워드 파일 경로 찾기
 var configPath string
+
+// 출판사 목록 상수 추가
+var PUBLISHERS = []string{
+	"씨엔아이파트너스",
+	"한빛미디어",
+	"위키북스",
+	"이지스퍼블리싱",
+	"길벗",
+	"에이콘출판사",
+	"제이펍",
+	"프리렉",
+}
 
 func init() {
 	// cmd 디렉토리 기준으로 상대 경로 설정
@@ -200,6 +214,7 @@ func (rs *RagServer) GetCachedBooks() (*BookSearchResponse, error) {
 	if err := json.Unmarshal([]byte(val), &response); err != nil {
 		return nil, err
 	}
+	log.Print(response.Documents, response.Result)
 	return &response, nil
 }
 
@@ -255,34 +270,43 @@ func (rs *RagServer) fetchAndCacheBooks() *BookSearchResponse {
 
 // 실제 API 호출
 func (rs *RagServer) fetchLatestBooks() *BookSearchResponse {
-
-	// 쿼리 기간 설정
 	startDate := time.Now().AddDate(0, -1, 0).Format("20060102")
 	endDate := time.Now().Format("20060102")
 
-	// API URL 생성
-	apiURL := fmt.Sprintf("%s?cert_key=%s&result_style=json&page_no=1&page_size=1000&start_publish_date=%s&end_publish_date=%s&sort=INPUT_DATE&order_by=DESC",
-		rs.key.baseURL,
-		rs.key.certKey,
-		startDate,
-		endDate,
-	)
+	var allBooks []RagBook
 
-	log.Printf("검색 시작 날짜: %s, 종료 날짜: %s", startDate, endDate)
+	// 각 출판사별로 API 호출
+	for _, publisher := range PUBLISHERS {
+		encodedPublisher := url.QueryEscape(publisher)
+		apiURL := fmt.Sprintf("%s?cert_key=%s&result_style=json&page_no=1&page_size=1000&start_publish_date=%s&end_publish_date=%s&sort=INPUT_DATE&order_by=DESC&publisher=%s",
+			rs.key.baseURL,
+			rs.key.certKey,
+			startDate,
+			endDate,
+			encodedPublisher,
+		)
 
-	// HTTP GET 요청
-	resp, err := http.Get(apiURL)
-	if err != nil {
-		log.Printf("API 호출 실패: %v", err)
-		return &BookSearchResponse{Result: "ERROR", ErrMsg: err.Error()}
-	}
-	defer resp.Body.Close()
+		resp, err := http.Get(apiURL)
+		if err != nil {
+			log.Printf("출판사 %s API 호출 실패: %v", publisher, err)
+			continue
+		}
+		defer resp.Body.Close()
 
-	// JSON 응답 파싱
-	var searchResp BookSearchResponse
-	if err := json.NewDecoder(resp.Body).Decode(&searchResp); err != nil {
-		log.Printf("JSON 파싱 실패: %v", err)
-		return &BookSearchResponse{Result: "ERROR", ErrMsg: err.Error()}
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			log.Printf("출판사 %s 응답 읽기 실패: %v", publisher, err)
+			continue
+		}
+
+		var searchResp BookSearchResponse
+		if err := json.Unmarshal(body, &searchResp); err != nil {
+			log.Printf("출판사 %s JSON 파싱 실패: %v", publisher, err)
+			continue
+		}
+
+		// 검색된 도서들을 allBooks에 추가
+		allBooks = append(allBooks, searchResp.Documents...)
 	}
 
 	// 키워드 로드는 한 번만 수행
@@ -290,26 +314,28 @@ func (rs *RagServer) fetchLatestBooks() *BookSearchResponse {
 	keywords := strings.Split(keywordsStr, "||")
 
 	ResultBooks := make([]RagBook, 0)
-	for _, book := range searchResp.Documents {
-		// 기본 필터링 조건 먼저 체크
+	publisherCount := make(map[string]int) // 출판사별 선택된 책 수를 추적!!!
+
+	for _, book := range allBooks {
 		if book.TitleURL == "" || book.PublishPreDate > time.Now().Format("20060102") {
 			continue
 		}
-		if book.EaAddCode == "15320" || book.EaAddCode == "" {
-			log.Printf("제외된 도서 (부가기호: %s): %s", book.EaAddCode, book.Title)
+
+		// 이미 해당 출판사에서 책을 선택했다면 스킵!!!
+		if publisherCount[book.Publisher] > 0 {
 			continue
 		}
-		// 키워드 체크 - 제목이나 목차 중 하나만 있어도 통과
+
 		hasKeyword := containsITKeyword(book.Title, keywords) || containsITKeyword(book.Cnt, keywords)
 		if !hasKeyword {
 			continue
 		}
 
-		// Gemini 검증
 		if isValid, recommendUser, keywords := rs.GeminiforBook(book); isValid {
 			book.RecommendUser = recommendUser
 			book.Keywords = keywords
 			ResultBooks = append(ResultBooks, book)
+			publisherCount[book.Publisher]++ // 출판사 카운트 증가!!!
 
 			if len(ResultBooks) >= 2 {
 				break
@@ -317,13 +343,12 @@ func (rs *RagServer) fetchLatestBooks() *BookSearchResponse {
 		}
 	}
 
-	// 호출결과 생성
-	searchResp.Documents = ResultBooks
-	searchResp.TotalCount = fmt.Sprintf("%d", len(ResultBooks))
-	searchResp.Result = "SUCCESS"
-
-	log.Println("gemini호출결과: ", searchResp)
-	return &searchResp
+	// 최종 응답 생성
+	return &BookSearchResponse{
+		Documents:  ResultBooks,
+		TotalCount: fmt.Sprintf("%d", len(ResultBooks)),
+		Result:     "SUCCESS",
+	}
 }
 
 // 24시간 유효기간 종료마다 캐시 자동 갱신

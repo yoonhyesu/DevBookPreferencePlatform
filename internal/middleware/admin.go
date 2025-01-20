@@ -13,7 +13,7 @@ func AdminMiddleware() gin.HandlerFunc {
 		user, exists := c.Get("user")
 		if !exists {
 			c.JSON(http.StatusUnauthorized, gin.H{
-				"error": "인증 정보가 없습니다!!!",
+				"error": "인증 정보가 없습니다",
 			})
 			c.Abort()
 			return
@@ -23,7 +23,7 @@ func AdminMiddleware() gin.HandlerFunc {
 		userData, ok := user.(gin.H)
 		if !ok {
 			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": "사용자 정보 형식이 잘못되었습니다!!!",
+				"error": "사용자 정보 형식이 잘못되었습니다",
 			})
 			c.Abort()
 			return
@@ -33,7 +33,7 @@ func AdminMiddleware() gin.HandlerFunc {
 		isAdmin, exists := userData["IsAdmin"]
 		if !exists || !isAdmin.(bool) {
 			c.JSON(http.StatusForbidden, gin.H{
-				"error": "관리자 권한이 필요합니다!!!",
+				"error": "관리자 권한이 필요합니다",
 			})
 			c.Abort()
 			return

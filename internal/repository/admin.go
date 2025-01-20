@@ -2,6 +2,7 @@ package repository
 
 import (
 	"DBP/internal/model"
+	"database/sql"
 	"fmt"
 	"log"
 	"strconv"
@@ -10,11 +11,11 @@ import (
 // 개발자 조회
 func (m *CommonRepo) GetDevList() []model.AddDevs {
 	rows, err := m.mariaDB.Connection.Query(`
-	SELECT ID, DEV_NAME, DEV_DETAIL_NAME, DEV_HISTORY, VIEW_YN, DEL_YN
-FROM dbp.dev_infos
-WHERE DEL_YN = 0
-ORDER BY ID
-`)
+	SELECT ID, DEV_NAME, DEV_DETAIL_NAME, DEV_HISTORY, VIEW_YN, PROFILE_IMAGE_PATH, DEL_YN
+	FROM dbp.dev_infos
+	WHERE DEL_YN = 0
+	ORDER BY ID
+	`)
 	if err != nil {
 		log.Println(err)
 		return []model.AddDevs{}
@@ -24,21 +25,64 @@ ORDER BY ID
 	var devs []model.AddDevs
 	for rows.Next() {
 		var dev model.AddDevs
+		var profileImagePath sql.NullString // NULL을 허용하는 타입으로 변경!!!
+
 		err := rows.Scan(
 			&dev.DevID,
 			&dev.DevName,
 			&dev.DevDetailName,
 			&dev.DevHistory,
 			&dev.ViewYN,
+			&profileImagePath, // NullString으로 스캔!!!
 			&dev.DelYN,
 		)
 		if err != nil {
 			log.Println("개발자 데이터 스캔 오류:", err)
 			continue
 		}
+
+		// NULL 체크 후 값 할당!!!
+		if profileImagePath.Valid {
+			dev.ProfileImagePath = profileImagePath.String
+		} else {
+			dev.ProfileImagePath = ""
+		}
+
 		devs = append(devs, dev)
 	}
 	return devs
+}
+
+// 특정 개발자 조회
+func (m *CommonRepo) GetDevID(devID string) (model.AddDevs, error) {
+	var dev model.AddDevs
+	var profileImagePath sql.NullString
+
+	err := m.mariaDB.Connection.QueryRow(`
+    SELECT ID, DEV_NAME, DEV_DETAIL_NAME, DEV_HISTORY, VIEW_YN, PROFILE_IMAGE_PATH, DEL_YN
+    FROM dbp.dev_infos
+    WHERE DEL_YN = 0 AND ID = ?
+    `, devID).Scan(
+		&dev.DevID,
+		&dev.DevName,
+		&dev.DevDetailName,
+		&dev.DevHistory,
+		&dev.ViewYN,
+		&profileImagePath,
+		&dev.DelYN,
+	)
+
+	if err != nil {
+		return model.AddDevs{}, err
+	}
+
+	if profileImagePath.Valid {
+		dev.ProfileImagePath = profileImagePath.String
+	} else {
+		dev.ProfileImagePath = ""
+	}
+
+	return dev, nil
 }
 
 // 마지막 개발자 ID 조회
@@ -81,12 +125,14 @@ func (m *CommonRepo) AddDev(dev model.AddDevs) error {
 	// 새로운 ID 생성
 	newID := generateNextDevID(lastID)
 
-	// 개발자 등록
-	_, err = m.mariaDB.Connection.Exec(`
+	query := `
 	INSERT INTO dbp.dev_infos 
-	(ID, DEV_NAME, DEV_DETAIL_NAME, DEV_HISTORY, VIEW_YN) 
-	VALUES (?, ?, ?, ?, ?)`,
-		newID, dev.DevName, dev.DevDetailName, dev.DevHistory, dev.ViewYN)
+	(ID, DEV_NAME, DEV_DETAIL_NAME, DEV_HISTORY, PROFILE_IMAGE_PATH, VIEW_YN) 
+	VALUES (?, ?, ?, ?, ?, ?)
+	`
+	// 개발자 등록
+	_, err = m.mariaDB.Connection.Exec(query,
+		newID, dev.DevName, dev.DevDetailName, dev.DevHistory, dev.ProfileImagePath, dev.ViewYN)
 	return err
 }
 
@@ -94,10 +140,13 @@ func (m *CommonRepo) AddDev(dev model.AddDevs) error {
 func (m *CommonRepo) UpdateDev(dev model.AddDevs) error {
 	_, err := m.mariaDB.Connection.Exec(`
         UPDATE dbp.dev_infos 
-        SET DEV_NAME = ?, DEV_DETAIL_NAME = ?, DEV_HISTORY = ?, VIEW_YN = ?
+        SET DEV_NAME = ?, DEV_DETAIL_NAME = ?, DEV_HISTORY = ?, PROFILE_IMAGE_PATH = ?, VIEW_YN = ?
         WHERE ID = ?`,
-		dev.DevName, dev.DevDetailName, dev.DevHistory, dev.ViewYN, dev.DevID)
-	return err
+		dev.DevName, dev.DevDetailName, dev.DevHistory, dev.ProfileImagePath, dev.ViewYN, dev.DevID)
+	if err != nil {
+		return fmt.Errorf("개발자 업데이트 실패: %v", err)
+	}
+	return nil
 }
 
 // 개발자 삭제 (soft delete)

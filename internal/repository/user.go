@@ -203,7 +203,7 @@ func (m *CommonRepo) SignOut(accessToken string) error {
 	// 여기서는 템플릿데이터 어캐하지/
 }
 
-// 사용자 정보 조회
+// 사용자 정보 조회(세션유지용)
 func (m *CommonRepo) GetUserInfo(userId string) (*model.User, error) {
 	query := `
 	SELECT USER_ID, EMAIL, USER_NAME, IS_ADMIN 
@@ -227,21 +227,11 @@ AND USER_STATUS = 0
 // 사용자 정보 조회
 func (m *CommonRepo) GetUserProfile(userID string) (*model.User, error) {
 	var user model.User
-	// NULL이 가능한 필드를 위한 변수들
-	var userText, company, githubLink, blogLink sql.NullString
-	var phoneNumber sql.NullString
-
 	err := m.mariaDB.Connection.QueryRow(`
-	SELECT PHONE_NUMBER, USER_TEXT, COMPANY, GITHUB_LINK, BLOG_LINK
-	FROM dbp.users
-	WHERE USER_ID = ? AND USER_STATUS = 0
-	`, userID).Scan(
-		&phoneNumber,
-		&userText,
-		&company,
-		&githubLink,
-		&blogLink,
-	)
+SELECT PHONE_NUMBER, IFNULL(USER_TEXT,'') as USER_TEXT, IFNULL(COMPANY, '') as COMPANY, IFNULL(GITHUB_LINK, '') as GITHUB_LINK, IFNULL(BLOG_LINK, '') as BLOG_LINK, IFNULL(PROFILE_IMAGE_PATH,'') as PROFILE_IMAGE_PATH
+FROM dbp.users
+WHERE USER_ID = ? AND USER_STATUS = 0
+	`, userID).Scan(&user.PhoneNumber, &user.UserText, &user.Company, &user.GithubLink, &user.BlogLink, &user.ProfileImagePath)
 
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -250,19 +240,12 @@ func (m *CommonRepo) GetUserProfile(userID string) (*model.User, error) {
 		return nil, fmt.Errorf("프로필 조회 중 오류 발생: %v", err)
 	}
 
-	// NULL 체크 후 값 할당
-	user.PhoneNumber = phoneNumber.String
-	user.UserText = userText.String
-	user.Company = company.String
-	user.GithubLink = githubLink.String
-	user.BlogLink = blogLink.String
-
 	return &user, nil
 }
 
 // 프로필 수정
 func (m *CommonRepo) UpdateProfile(req model.ProfileEditRequest) error {
-	_, err := m.mariaDB.Connection.Exec(`
+	query := `
 	UPDATE dbp.users 
 	SET 
 		USER_NAME = ?,
@@ -271,13 +254,22 @@ func (m *CommonRepo) UpdateProfile(req model.ProfileEditRequest) error {
 		COMPANY = ?,
 		GITHUB_LINK = ?,
 		BLOG_LINK = ?,
+		PROFILE_IMAGE_PATH = ?,
 		UPDATE_DATE = NOW()
-	WHERE USER_ID = ? AND USER_STATUS = 0
-	`, req.UserName, req.PhoneNumber, req.UserText, req.Company,
-		req.GithubLink, req.BlogLink, req.UserID)
+	WHERE USER_ID = ?
+	`
+	_, err := m.mariaDB.Connection.Exec(query,
+		req.UserName,
+		req.PhoneNumber,
+		req.UserText,
+		req.Company,
+		req.GithubLink,
+		req.BlogLink,
+		req.ProfileImagePath,
+		req.UserID)
 
 	if err != nil {
-		return fmt.Errorf("프로필 수정 실패: %v", err)
+		return fmt.Errorf("프로필 업데이트 실패: %v", err)
 	}
 	return nil
 }

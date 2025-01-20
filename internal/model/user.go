@@ -2,16 +2,18 @@ package model
 
 // 사용자
 type User struct {
-	UserId      string `json:"USER_ID"`
-	Password    string `json:"PASSWORD"`
-	UserName    string `json:"USER_NAME"`
-	Email       string `json:"EMAIL"`
-	PhoneNumber string `json:"PHONE_NUMBER"`
-	GithubLink  string `json:"GITHUB_LINK"`
-	BlogLink    string `json:"BLOG_LINK"`
-	Company     string `json:"COMPANY"`
-	UserText    string `json:"USER_TEXT"`
-	IsAdmin     bool   `json:"IS_ADMIN"`
+	UserId           string `json:"USER_ID"`
+	Password         string `json:"PASSWORD"`
+	UserName         string `json:"USER_NAME"`
+	Email            string `json:"EMAIL"`
+	PhoneNumber      string `json:"PHONE_NUMBER"`
+	GithubLink       string `json:"GITHUB_LINK"`
+	BlogLink         string `json:"BLOG_LINK"`
+	Company          string `json:"COMPANY"`
+	UserText         string `json:"USER_TEXT"`
+	IsAdmin          bool   `json:"IS_ADMIN"`
+	ProfileImagePath string `json:"PROFILE_IMAGE_PATH"`
+	ProfileImageName string `json:"PROFILE_IMAGE_NAME"`
 }
 
 // 회원가입용
@@ -48,13 +50,14 @@ type UserTemplateData struct {
 
 // 프로필 수정 요청
 type ProfileEditRequest struct {
-	UserID      string `json:"-"` // 서버에서 설정
-	UserName    string `json:"USER_NAME"`
-	PhoneNumber string `json:"PHONE_NUMBER"`
-	UserText    string `json:"USER_TEXT"`
-	Company     string `json:"COMPANY"`
-	GithubLink  string `json:"GITHUB_LINK"`
-	BlogLink    string `json:"BLOG_LINK"`
+	UserID           string `json:"-"` // 서버에서 설정
+	UserName         string `json:"USER_NAME"`
+	PhoneNumber      string `json:"PHONE_NUMBER"`
+	UserText         string `json:"USER_TEXT"`
+	Company          string `json:"COMPANY"`
+	GithubLink       string `json:"GITHUB_LINK"`
+	BlogLink         string `json:"BLOG_LINK"`
+	ProfileImagePath string `json:"PROFILE_IMAGE_PATH"`
 }
 
 // 비밀번호 변경 요청

@@ -6,8 +6,11 @@ import (
 	"DBP/internal/repository"
 	"log"
 	"net/http"
+	"os"
+	"path/filepath"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 type UserHandler struct {
@@ -153,18 +156,27 @@ func (u *UserHandler) GetUserProfile(c *gin.Context) {
 	userInfo, err := u.repo.GetUserProfile(userID)
 	if err != nil {
 		log.Printf("프로필 조회 실패: %v", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "프로필 조회에 실패했습니다!!!"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "프로필 조회에 실패했습니다"})
 		return
 	}
 
 	log.Printf("프로필 조회 성공 - 데이터: %+v", userInfo)
 	c.JSON(http.StatusOK, gin.H{
-		"PHONE_NUMBER": userInfo.PhoneNumber,
-		"USER_TEXT":    userInfo.UserText,
-		"COMPANY":      userInfo.Company,
-		"GITHUB_LINK":  userInfo.GithubLink,
-		"BLOG_LINK":    userInfo.BlogLink,
+		"PHONE_NUMBER":       userInfo.PhoneNumber,
+		"USER_TEXT":          userInfo.UserText,
+		"COMPANY":            userInfo.Company,
+		"GITHUB_LINK":        userInfo.GithubLink,
+		"BLOG_LINK":          userInfo.BlogLink,
+		"PROFILE_IMAGE_PATH": userInfo.ProfileImagePath,
 	})
+}
+
+// 프로필 이미지 환경변수 가져오기
+func getProfileImagePath() string {
+	if path := os.Getenv("PROFILE_PATH"); path != "" {
+		return path
+	}
+	return ""
 }
 
 // 프로필 수정
@@ -173,24 +185,83 @@ func (h *UserHandler) ProfileEdit(c *gin.Context) {
 	user := c.MustGet("user")
 	userData, ok := user.(gin.H)
 	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "사용자 정보 처리 오류가 발생했습니다!!!"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "사용자 정보 처리 오류가 발생했습니다"})
 		return
 	}
 
 	userID, ok := userData["UserId"].(string)
 	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "사용자 ID를 찾을 수 없습니다!!!"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "사용자 ID를 찾을 수 없습니다"})
+		return
+	}
+
+	// multiple files 파싱
+	form, err := c.MultipartForm()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "폼 데이터 처리 중 오류가 발생했습니다"})
 		return
 	}
 
 	var req model.ProfileEditRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
 	// 현재 로그인한 사용자의 ID 설정
 	req.UserID = userID
+
+	// 폼 데이터 바인딩
+	if values, exists := form.Value["USER_NAME"]; exists && len(values) > 0 {
+		req.UserName = values[0]
+	}
+	if values, exists := form.Value["PHONE_NUMBER"]; exists && len(values) > 0 {
+		req.PhoneNumber = values[0]
+	}
+	if values, exists := form.Value["USER_TEXT"]; exists && len(values) > 0 {
+		req.UserText = values[0]
+	}
+	if values, exists := form.Value["COMPANY"]; exists && len(values) > 0 {
+		req.Company = values[0]
+	}
+	if values, exists := form.Value["GITHUB_LINK"]; exists && len(values) > 0 {
+		req.GithubLink = values[0]
+	}
+	if values, exists := form.Value["BLOG_LINK"]; exists && len(values) > 0 {
+		req.BlogLink = values[0]
+	}
+
+	// 이미지 처리
+	if files := form.File["PROFILE_IMAGE"]; len(files) > 0 {
+		file := files[0]
+
+		// 파일 확장자 가져오기
+		ext := filepath.Ext(file.Filename)
+
+		// 환경변수 가져오기
+		uploadDir := filepath.Join(".", getProfileImagePath())
+		log.Printf("업로드 경로: %s", uploadDir)
+
+		// 환경변수로 설정된 디렉토리 참고
+		if err := os.MkdirAll(uploadDir, 0755); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "디렉토리 생성 중 오류"})
+			return
+		}
+
+		// 새로운 파일명 생성 (UUID + 확장자)
+		newFileName := uuid.New().String() + ext
+		filePath := filepath.Join(uploadDir, newFileName)
+
+		// 파일 저장
+		if err := c.SaveUploadedFile(file, filePath); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "이미지 저장 중 오류 발생"})
+			return
+		}
+		req.ProfileImagePath = "/" + filePath
+	} else {
+		// 이미지가 업로드되지 않은 경우 기존 프로필 이미지 경로 가져오기
+		existingProfile, err := h.repo.GetUserProfile(userID)
+		if err != nil {
+			log.Printf("기존 프로필 정보 조회 실패: %v", err)
+		} else {
+			req.ProfileImagePath = existingProfile.ProfileImagePath
+		}
+	}
 
 	if err := h.repo.UpdateProfile(req); err != nil {
 		log.Printf("프로필 수정 실패: %v", err)
@@ -198,7 +269,10 @@ func (h *UserHandler) ProfileEdit(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "프로필이 성공적으로 수정되었습니다!!!"})
+	c.JSON(http.StatusOK, gin.H{
+		"message":            "프로필이 성공적으로 수정되었습니다",
+		"PROFILE_IMAGE_PATH": req.ProfileImagePath,
+	})
 }
 
 // 비밀번호 변경

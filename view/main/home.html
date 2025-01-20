@@ -16,7 +16,8 @@
                 </h3>
                 <div class="mb-1 text-body-secondary mb-auto">{{.Author}} | {{.Publisher}} | {{.PublishPreDate}}</div>
                 <div class="mb-1 text-body-secondary mb-auto">👤추천 대상 : {{.RecommendUser}}</div>
-                <a href="#" class="icon-link gap-1 icon-link-hover" style="z-index: 1;">북냥이한테 책훔치기😼
+                <a href="https://search.kyobobook.co.kr/search?keyword={{ .EaISBN }}"
+                    class="icon-link gap-1 icon-link-hover" style="z-index: 1;">북냥이한테 책훔치기😼
                     <svg class="bi">
                         <use xlink:href="#chevron-right" />
                     </svg>
@@ -42,8 +43,7 @@
                             class="row g-0 border-end overflow-hidden flex-xl-row flex-column align-items-center h-100 position-relative">
                             <div class="col-auto p-5 d-flex align-items-center justify-content-center">
                                 <div class="profile-img border">
-                                    <img src="/assets/images/nicolas.png" class="bd-placeholder-img border"
-                                        alt="Tucker" />
+                                    <img src="{{.homeDevBook.ProfileImagePath}}" class="bd-placeholder-img border" />
                                 </div>
                             </div>
                             <div
@@ -73,27 +73,27 @@
 <div class="row g-5">
     <div class="col-md-8">
         <h4 class="fw-semibold pb-4 mt-5 mb-2">📢 공지사항!!!</h4>
-        {{ range .notices }}
         <div class="row gy-4">
-            <div class="col-md-6 col-12 p-1">
-                <div class="card bg-white shadow-sm">
+            {{ range .notices }}
+            <div class="col-md-6 p-2">
+                <div class="card bg-white shadow-sm h-100">
                     <div class="card-body">
-                        <h4 class="fw-normal">{{ .Title }}</h4>
-                        <p class="mb-0">
+                        <h5 class="card-title fw-normal">{{ .Title }}</h5>
+                        <p class="card-text mb-0">
                             {{ .Content }}
                         </p>
                     </div>
                 </div>
             </div>
+            {{ end }}
         </div>
-        {{ end }}
     </div>
 
     <!-- <div class="col-md-4">
         <div class="position-sticky" style="top: 2rem;">
             <div class="p-4 mb-3 bg-body-tertiary rounded">
                 <h4 class="fw-normal">About</h4>
-                <p class="mb-0">개북취는 ‘개’발자 ‘북’ ‘취’향 의 줄임말입니다. 여러분도 이 험난한 개발의 바다에서 무사히 성장할 수 있도록, 개북취가 든든한 길잡이가 되어드리겠습니다.
+                <p class="mb-0">개북취는 '개'발자 '북' '취'향 의 줄임말입니다. 여러분도 이 험난한 개발의 바다에서 무사히 성장할 수 있도록, 개북취가 든든한 길잡이가 되어드리겠습니다.
                 </p>
             </div> -->
 

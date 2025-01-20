@@ -27,10 +27,11 @@ type Repository interface {
 
 	// 관리자(개발자관리)
 	GetDevList() []model.AddDevs
+
 	AddDev(dev model.AddDevs) error
 	UpdateDev(dev model.AddDevs) error
 	DeleteDev(devID string) error
-
+	GetDevID(devID string) (model.AddDevs, error)
 	// 관리자(공지사항관리)
 	GetNoticeList() []model.Notice
 	AddNotice(notice model.Notice) error

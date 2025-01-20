@@ -59,7 +59,7 @@ func LoadEnv() error {
 		return err
 	}
 
-	log.Println("환경변수 로드 성공!!!")
+	log.Println("환경변수 로드 성공")
 	return nil
 }
 

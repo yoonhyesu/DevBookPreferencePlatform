@@ -3,7 +3,6 @@ package handler
 import (
 	"DBP/internal/repository"
 	service "DBP/internal/service/rag_book_service"
-	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -29,7 +28,6 @@ func (h *HomeHandler) GetHomeData(c *gin.Context) {
 	notices := h.repo.GetNotice()
 	devBook := h.repo.GetHomeDevBook()
 	books := h.ragService.GetCasheBook()
-	log.Println("홈화면 개발자오류:", devBook)
 
 	// templateData 대신 새로운 데이터 맵 생성
 	templateData := gin.H{
@@ -39,6 +37,6 @@ func (h *HomeHandler) GetHomeData(c *gin.Context) {
 		"latestBooks": books.Documents,
 	}
 
-	log.Printf("홈 화면 템플릿 데이터: %+v", templateData)
+	// log.Printf("홈 화면 템플릿 데이터: %+v", templateData)
 	c.HTML(http.StatusOK, "index.html", templateData)
 }

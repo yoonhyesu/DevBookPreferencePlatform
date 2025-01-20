@@ -38,12 +38,13 @@ type AddBooks struct {
 
 // 개발자 등록용
 type AddDevs struct {
-	DevID         string `json:"ID"`
-	DevName       string `json:"DEV_NAME"`
-	DevDetailName string `json:"DEV_DETAIL_NAME"`
-	DevHistory    string `json:"DEV_HISTORY"`
-	ViewYN        bool   `json:"VIEW_YN"`
-	DelYN         bool   `json:"DEL_YN"`
+	DevID            string `json:"ID"`
+	DevName          string `json:"DEV_NAME"`
+	DevDetailName    string `json:"DEV_DETAIL_NAME"`
+	DevHistory       string `json:"DEV_HISTORY"`
+	ProfileImagePath string `json:"PROFILE_IMAGE_PATH"`
+	ViewYN           bool   `json:"VIEW_YN"`
+	DelYN            bool   `json:"DEL_YN"`
 }
 
 type DevRecommend struct {

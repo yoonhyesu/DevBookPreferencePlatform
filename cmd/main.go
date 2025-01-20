@@ -6,7 +6,9 @@ import (
 	"DBP/pkg/database"
 	"context"
 	"database/sql"
+	"io"
 	"log"
+	"os"
 
 	"github.com/gin-gonic/gin"
 )
@@ -18,8 +20,17 @@ type (
 )
 
 func main() {
+	// 반환된 *gin.Engine 구조체는 REST API 요청을 핸들링하는 method 등을 구현함
 	r := gin.Default()
 
+	gin.DisableConsoleColor()
+
+	// 파일에 로그를 작성합니다.
+	f, _ := os.Create("DBP.log")
+	gin.DefaultWriter = io.MultiWriter(f, os.Stdout)
+	log.SetOutput(io.MultiWriter(f, os.Stdout))
+
+	// 환경변수 로드
 	config.LoadEnv()
 	// db 연결 생성
 	db := database.GetDatabaseInstance()

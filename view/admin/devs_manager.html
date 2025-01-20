@@ -171,24 +171,45 @@
     <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">개발자</h5>
+                <h5 class="modal-title">개발자 등록</h5>
             </div>
             <div class="modal-body">
                 <div class="row g-3 row-gap-3">
-                    <div class="col-12">
-                        <label for="dev-name" class="form-label">이름</label>
-                        <input type="text" class="form-control" id="dev_name">
+                    <!-- 프로필 이미지 영역 -->
+                    <div class="col-12 col-lg-3">
+                        <div class="user-image">
+                            <div class="profile mb-3 preview">
+                                <img src="/assets/images/profile.png" alt="profile image" id="dev-img" />
+                            </div>
+                            <a class="btn btn-outline-secondary btn-sm d-inline-flex align-items-center">
+                                <input type="file" id="image_uploads" name="image_uploads"
+                                    class="position-absolute w-100 h-100 op-0"
+                                    accept="image/jpeg, image/png">변경(Png/JPG)
+                            </a>
+                        </div>
                     </div>
-                    <div class="col-12">
-                        <label for="dev-name" class="form-label">별칭</label>
-                        <input type="text" class="form-control" id="dev_detail_name">
+
+                    <!-- 개발자 정보 입력 영역 -->
+                    <div class="col-12 col-lg-9">
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label for="dev_name" class="form-label">이름</label>
+                                <input type="text" class="form-control" id="dev_name">
+                            </div>
+                            <div class="col-12">
+                                <label for="dev_detail_name" class="form-label">별칭</label>
+                                <input type="text" class="form-control" id="dev_detail_name">
+                            </div>
+                        </div>
                     </div>
+
                     <div class="col-12">
-                        <label for="dev-name" class="form-label">이력</label>
-                        <textarea class="form-control" id="dev_history"></textarea>
+                        <label for="dev_history" class="form-label">이력</label>
+                        <textarea class="form-control" id="dev_history" rows="5"></textarea>
                     </div>
+
                     <div class="col-12">
-                        <label for="dev-name" class="form-label">메인 노출여부</label>
+                        <label for="dev_main_exposure" class="form-label">메인 노출여부</label>
                         <select class="form-select" id="dev_main_exposure">
                             <option value=true>노출</option>
                             <option value=false>노출안함</option>
@@ -204,29 +225,50 @@
     </div>
 </div>
 
-<!-- 개발자 수정 모달-->
+<!-- 개발자 수정 모달 -->
 <div class="modal" id="dev-update">
     <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">개발자</h5>
+                <h5 class="modal-title">개발자 수정</h5>
             </div>
             <div class="modal-body">
                 <div class="row g-3 row-gap-3">
-                    <div class="col-12">
-                        <label for="dev-name" class="form-label">이름</label>
-                        <input type="text" class="form-control" id="u_dev_name">
+                    <!-- 프로필 이미지 영역 -->
+                    <div class="col-12 col-lg-3">
+                        <div class="user-image">
+                            <div class="profile mb-3 preview">
+                                <img src="/assets/images/profile.png" alt="profile image" id="update-profile-img" />
+                            </div>
+                            <a class="btn btn-outline-secondary btn-sm d-inline-flex align-items-center">
+                                <input type="file" id="u_image_uploads" name="u_image_uploads"
+                                    class="position-absolute w-100 h-100 op-0"
+                                    accept="image/jpeg, image/png">변경(Png/JPG)
+                            </a>
+                        </div>
                     </div>
-                    <div class="col-12">
-                        <label for="dev-detailname" class="form-label">별칭</label>
-                        <input type="text" class="form-control" id="u_dev_detail_name">
+
+                    <!-- 개발자 정보 입력 영역 -->
+                    <div class="col-12 col-lg-9">
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label for="u_dev_name" class="form-label">이름</label>
+                                <input type="text" class="form-control" id="u_dev_name">
+                            </div>
+                            <div class="col-12">
+                                <label for="u_dev_detail_name" class="form-label">별칭</label>
+                                <input type="text" class="form-control" id="u_dev_detail_name">
+                            </div>
+                        </div>
                     </div>
+
                     <div class="col-12">
-                        <label for="dev-history" class="form-label">이력</label>
-                        <textarea class="form-control" id="u_dev_history"></textarea>
+                        <label for="u_dev_history" class="form-label">이력</label>
+                        <textarea class="form-control" id="u_dev_history" rows="5"></textarea>
                     </div>
+
                     <div class="col-12">
-                        <label for="dev-exposure" class="form-label">메인 노출여부</label>
+                        <label for="u_dev_main_exposure" class="form-label">메인 노출여부</label>
                         <select class="form-select" id="u_dev_main_exposure">
                             <option value=true>노출</option>
                             <option value=false>노출안함</option>

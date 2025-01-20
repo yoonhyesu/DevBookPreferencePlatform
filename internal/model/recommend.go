@@ -43,31 +43,34 @@ type BookInfo struct {
 
 // 책을 추천한 개발자정보
 type DevInfo struct {
-	DevID         string `json:"ID"`
-	DevName       string `json:"DEV_NAME"`
-	DevDetailName string `json:"DEV_DETAIL_NAME"`
-	DevHistory    string `json:"DEV_HISTORY"`
-	ViewYN        bool   `json:"VIEW_YN"`
-	DelYN         bool   `json:"DEL_YN"`
+	DevID            string `json:"ID"`
+	DevName          string `json:"DEV_NAME"`
+	DevDetailName    string `json:"DEV_DETAIL_NAME"`
+	DevHistory       string `json:"DEV_HISTORY"`
+	ProfileImagePath string `json:"PROFILE_IMAGE_PATH"`
+	ViewYN           bool   `json:"VIEW_YN"`
+	DelYN            bool   `json:"DEL_YN"`
 }
 
 // 개발자 상세정보
 type DevDetail struct {
-	DevID         string `json:"ID"`
-	DevName       string `json:"DEV_NAME"`
-	DevDetailName string `json:"DEV_DETAIL_NAME"`
-	DevHistory    string `json:"DEV_HISTORY"`
-	ViewYN        bool   `json:"VIEW_YN"`
-	DelYN         bool   `json:"DEL_YN"`
+	DevID            string `json:"ID"`
+	DevName          string `json:"DEV_NAME"`
+	DevDetailName    string `json:"DEV_DETAIL_NAME"`
+	DevHistory       string `json:"DEV_HISTORY"`
+	ProfileImagePath string `json:"PROFILE_IMAGE_PATH"`
+	ViewYN           bool   `json:"VIEW_YN"`
+	DelYN            bool   `json:"DEL_YN"`
 }
 
 // 개발자추천책 정보
 type DevBookLikeReason struct {
-	DevReasonID int    `json:"ID"`
-	DevReason   string `json:"DEV_RECOMMEND_REASON"`
-	DelYN       bool   `json:"DEL_YN"`
-	BookID      int    `json:"BOOK_ID"`
-	DevID       string `json:"DEV_ID"`
-	BookTitle   string `json:"BOOK_TITLE"`
-	CoverURL    string `json:"COVER_URL"`
+	DevReasonID      int    `json:"ID"`
+	DevReason        string `json:"DEV_RECOMMEND_REASON"`
+	DelYN            bool   `json:"DEL_YN"`
+	BookID           int    `json:"BOOK_ID"`
+	ProfileImagePath string `json:"PROFILE_IMAGE_PATH"`
+	DevID            string `json:"DEV_ID"`
+	BookTitle        string `json:"BOOK_TITLE"`
+	CoverURL         string `json:"COVER_URL"`
 }

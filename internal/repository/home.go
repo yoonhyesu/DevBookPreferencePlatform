@@ -2,6 +2,7 @@ package repository
 
 import (
 	"DBP/internal/model"
+	"strings"
 	"time"
 
 	"log"
@@ -47,7 +48,8 @@ func (m *CommonRepo) GetHomeDevBook() model.HomeDevBook {
         C.ID,
         C.DEV_NAME,
         C.DEV_HISTORY,
-        C.DEV_DETAIL_NAME 
+        C.DEV_DETAIL_NAME,
+		C.PROFILE_IMAGE_PATH
     FROM dbp.dev_recommends A
     INNER JOIN dbp.BOOK_INFOS B ON A.BOOK_ID = B.BOOK_ID 
     INNER JOIN dbp.dev_infos C ON A.DEV_ID = C.ID
@@ -64,8 +66,8 @@ func (m *CommonRepo) GetHomeDevBook() model.HomeDevBook {
 	first := true
 	for rows.Next() {
 		var bookID int
-		var bookTitle, coverURL, devID, devName, devHistory, devDetailName string
-		err = rows.Scan(&bookID, &bookTitle, &coverURL, &devID, &devName, &devHistory, &devDetailName)
+		var bookTitle, coverURL, devID, devName, devHistory, devDetailName, profileImagePath string
+		err = rows.Scan(&bookID, &bookTitle, &coverURL, &devID, &devName, &devHistory, &devDetailName, &profileImagePath)
 		if err != nil {
 			log.Println("책 정보 스캔 중 오류:", err)
 			continue
@@ -77,6 +79,7 @@ func (m *CommonRepo) GetHomeDevBook() model.HomeDevBook {
 			devBook.DevName = devName
 			devBook.DevHistory = devHistory
 			devBook.DevDetailName = devDetailName
+			devBook.ProfileImagePath = profileImagePath
 			devBook.Books = []model.Book{}
 			first = false
 		}
@@ -88,6 +91,12 @@ func (m *CommonRepo) GetHomeDevBook() model.HomeDevBook {
 			CoverURL:  coverURL,
 		}
 		devBook.Books = append(devBook.Books, book)
+	}
+
+	// 이미지 경로 처리
+	if devBook.ProfileImagePath != "" {
+		// 백슬래시를 슬래시로 변환
+		devBook.ProfileImagePath = strings.ReplaceAll(devBook.ProfileImagePath, "\\", "/")
 	}
 
 	return devBook

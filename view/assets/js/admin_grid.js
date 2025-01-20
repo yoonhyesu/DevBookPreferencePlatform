@@ -36,6 +36,13 @@ export function initSearch() {
     admin_dev_search_table.clearFilter();
 }
 
+// 이미지 URL 처리 함수 추가
+function getImageUrl(path) {
+    if (!path) return '/assets/images/no-image.jpg';
+    // 백슬래시를 슬래시로 변환하고 URL 인코딩
+    return path.replace(/\\/g, '/').split('/').map(encodeURIComponent).join('/');
+}
+
 $(document).ready(function () {
     let admin_notice_table, admin_book_table, admin_dev_table;
 
@@ -214,8 +221,19 @@ $(document).ready(function () {
                 { title: "no.", field: "ID", sorter: "string", width: 100 },
                 { title: "프로그래머명", field: "DEV_NAME", sorter: "string", width: 300 },
                 { title: "별칭", field: "DEV_DETAIL_NAME", sorter: "string", width: 300 },
-                { title: "경력", field: "DEV_HISTORY", sorter: "string", width: 400 },
-                { title: "메인노출여부", field: "VIEW_YN", sorter: "string", width: 200, formatter: "tickCross" },
+                { title: "경력", field: "DEV_HISTORY", sorter: "string", width: 300 },
+                {
+                    title: "프로필 이미지",
+                    field: "PROFILE_IMAGE_PATH",
+                    sorter: "string",
+                    formatter: "image",
+                    formatterParams: {
+                        height: "100px",
+                        width: "100px"
+                    },
+                    width: 200
+                },
+                { title: "메인노출", field: "VIEW_YN", sorter: "string", width: 200, formatter: "tickCross" },
             ],
         });
 
@@ -295,6 +313,22 @@ $(document).ready(function () {
         $('#u_dev_history').val(selectedData.DEV_HISTORY);
         $('#u_dev_main_exposure').val(selectedData.VIEW_YN === true ? 'true' : 'false');
 
+        // 이미지가 있는 경우 미리보기 표시 및 hidden input 추가
+        if (selectedData.PROFILE_IMAGE_PATH) {
+            $('#update-profile-img').attr('src', selectedData.PROFILE_IMAGE_PATH);
+            // hidden input 추가 또는 업데이트
+            if (!$('#existing_image_path').length) {
+                $('<input>').attr({
+                    type: 'hidden',
+                    id: 'existing_image_path',
+                    name: 'EXISTING_PROFILE_IMAGE',
+                    value: selectedData.PROFILE_IMAGE_PATH
+                }).appendTo('#dev-update form');
+            } else {
+                $('#existing_image_path').val(selectedData.PROFILE_IMAGE_PATH);
+            }
+        }
+
         // Bootstrap 5 방식으로 모달 표시
         const updateModal = new bootstrap.Modal(document.getElementById('dev-update'));
         updateModal.show();
@@ -302,30 +336,65 @@ $(document).ready(function () {
 
     // 개발자 관리 - 수정 모달 서버에 전송
     $('#update-btn').on('click', function (e) {
-        const dev_name = $('#u_dev_name').val();
-        const dev_detail_name = $('#u_dev_detail_name').val();
-        const dev_history = $('#u_dev_history').val();
-        const dev_main_exposure = $('#u_dev_main_exposure').val();
+        const formData = new FormData();
+
+        // 이미지 파일 있는지 확인
+        const imageInput = document.getElementById('u_image_uploads');
+        if (imageInput && imageInput.files[0]) {
+            formData.append('PROFILE_IMAGE', imageInput.files[0]);
+        } else {
+            // 새로운 이미지가 없는 경우, 기존 이미지 경로 전송
+            const existingPath = $('#existing_image_path').val();
+            if (existingPath) {
+                formData.append('PROFILE_IMAGE_PATH', existingPath);
+            }
+        }
+
+        // 나머지 데이터 추가
+        const dev_main_exposure = $('#u_dev_main_exposure').val() === "true" ? true : false;
+        formData.append('DEV_ID', selectedData.ID);
+        formData.append('DEV_NAME', $('#u_dev_name').val());
+        formData.append('DEV_DETAIL_NAME', $('#u_dev_detail_name').val());
+        formData.append('DEV_HISTORY', $('#u_dev_history').val());
+        formData.append('VIEW_YN', dev_main_exposure);
+
+        // FormData 내용 확인
+        for (let pair of formData.entries()) {
+            console.log(pair[0] + ': ' + pair[1]);
+        }
 
         $.ajax({
             url: '/admin/dev/update',
             method: 'POST',
-            contentType: 'application/json',
-            data: JSON.stringify({
-                NOTICE_ID: selectedData.NOTICE_ID,
-                DEV_NAME: dev_name,
-                DEV_DETAIL_NAME: dev_detail_name,
-                DEV_HISTORY: dev_history,
-                VIEW_YN: dev_main_exposure === 'true' ? true : false
-            }),
+            processData: false,
+            contentType: false,
+            data: formData,
             success: function (response) {
+                console.log('서버응답:', response);
+                if (response.PROFILE_IMAGE_PATH) {
+                    $('#update-profile-img').attr('src', response.PROFILE_IMAGE_PATH);
+                }
                 alert("개발자 수정에 성공했습니다");
                 $('#dev-update').modal('hide');
+                location.reload();
             },
             error: function (error) {
+                console.error('에러:', error);
                 alert("개발자 수정 실패");
             }
         });
+    });
+
+    // 이미지 미리보기 기능
+    $('#u_image_uploads').on('change', function (e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                $('#update-profile-img').attr('src', e.target.result);
+            };
+            reader.readAsDataURL(file);
+        }
     });
 
     // 개발자 관리 - 모달이 닫힐 때 초기화
@@ -342,7 +411,7 @@ $(document).ready(function () {
     $('#update_notice').on('click', function (e) {
         if (!selectedData) {
             e.preventDefault();
-            alert('수정할 공지사항을 선택해주세요!!!');
+            alert('수정할 공지사항을 선택해주세요');
             return;
         }
 
@@ -363,7 +432,7 @@ $(document).ready(function () {
         const topyn = $('#notice_update_topyn').val();
 
         if (!title || !content) {
-            alert('제목과 내용을 모두 입력해주세요!!!');
+            alert('제목과 내용을 모두 입력해주세요');
             return;
         }
 
@@ -378,12 +447,12 @@ $(document).ready(function () {
                 TOP_YN: topyn === 'true'
             }),
             success: function (response) {
-                alert('공지사항이 성공적으로 수정되었습니다!!!');
+                alert('공지사항이 성공적으로 수정되었습니다');
                 $('#notice-update').modal('hide');
                 location.reload();
             },
             error: function (error) {
-                alert('공지사항 수정에 실패했습니다!!!');
+                alert('공지사항 수정에 실패했습니다');
                 console.error('에러:', error);
             }
         });
@@ -393,7 +462,7 @@ $(document).ready(function () {
     $('#DELETE_NOTICE').on('click', function (e) {
         if (!selectedData) {
             e.preventDefault();
-            alert('삭제할 공지사항을 선택해주세요!!!');
+            alert('삭제할 공지사항을 선택해주세요');
             return;
         }
 
@@ -404,11 +473,11 @@ $(document).ready(function () {
                 contentType: 'application/json',
                 data: JSON.stringify({ NOTICE_ID: selectedData.NOTICE_ID }),
                 success: function (response) {
-                    alert('공지사항이 성공적으로 삭제되었습니다!!!');
+                    alert('공지사항이 성공적으로 삭제되었습니다');
                     location.reload();
                 },
                 error: function (error) {
-                    alert('공지사항 삭제에 실패했습니다!!!');
+                    alert('공지사항 삭제에 실패했습니다');
                     console.error('에러:', error);
                 }
             });
@@ -426,7 +495,7 @@ $(document).ready(function () {
     $('#update_book').on('click', function (e) {
         if (!selectedData) {
             e.preventDefault();
-            alert('수정할 도서를 선택해주세요!!!');
+            alert('수정할 도서를 선택해주세요');
             return;
         }
 
@@ -452,21 +521,103 @@ $(document).ready(function () {
         const choicesInstance = new Choices('#u_book_tag');
         choicesInstance.setValue(tags);
 
-        // 개발자 추천 정보 바인딩 - 이제 별도 요청 없이 selectedData에서 바로 사용
+        // 추천 프로그래머 컨테이너 초기화
+        $('#u_recommenderContainer').empty();
+
+        // 기존 추천 프로그래머 정보 바인딩
         if (selectedData.DEV_RECOMMENDS && selectedData.DEV_RECOMMENDS.length > 0) {
             selectedData.DEV_RECOMMENDS.forEach((rec, index) => {
-                if (index > 0) {
-                    $('#u_add-recommender').click();  // 필요한 만큼 추천인 폼 추가
-                }
-                $(`#u_devID${index + 1}`).val(rec.DEV_ID);
-                $(`#u_name${index + 1}`).val(rec.DEV_NAME);
-                $(`#u_reason${index + 1}`).val(rec.DEV_RECOMMEND_REASON);
+                $('#u_recommenderContainer').append(`
+                    <div class="col-12 mb-3">
+                        <label for="u_devID${index + 1}" class="form-label required">추천 프로그래머ID</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="u_devID${index + 1}" name="u_devID${index + 1}" 
+                                   value="${rec.DEV_ID}" readonly required>
+                            <button class="btn btn-outline-primary checkDevId" type="button" 
+                                    data-index="${index + 1}">검색</button>
+                        </div>
+                    </div>
+                    <div class="col-12 mb-3">
+                        <label for="u_name${index + 1}" class="form-label required">추천 프로그래머명</label>
+                        <input type="text" class="form-control" id="u_name${index + 1}" 
+                               name="u_name${index + 1}" value="${rec.DEV_NAME}" readonly required>
+                    </div>
+                    <div class="col-12 mb-3">
+                        <label for="u_reason${index + 1}" class="form-label required">프로그래머 추천이유</label>
+                        <textarea class="form-control" id="u_reason${index + 1}" 
+                                  name="u_reason${index + 1}" rows="3" required>${rec.DEV_RECOMMEND_REASON}</textarea>
+                    </div>
+                `);
+
+                // 검색 버튼에 이벤트 핸들러 연결
+                $(`button[data-index="${index + 1}"]`).on("click", function () {
+                    const currentIndex = $(this).data('index');
+                    $('#dev-search-modal').data('currentIndex', currentIndex);
+                    $('#dev-search-modal').data('isUpdate', true);
+                    const searchModal = new bootstrap.Modal(document.getElementById('dev-search-modal'));
+                    searchModal.show();
+                });
             });
         }
 
         // 수정 모달 표시
         const updateModal = new bootstrap.Modal(document.getElementById('book-update'));
         updateModal.show();
+    });
+
+    // 프로그래머 추가/삭제 버튼 이벤트 (수정 모달용)
+    $('#u_add-recommender').click(function () {
+        const index = ($('#u_recommenderContainer').children().length / 3) + 1;
+        $('#u_recommenderContainer').append(`
+            <div class="col-12 mb-3">
+                <label for="u_devID${index}" class="form-label required">추천 프로그래머ID</label>
+                <div class="input-group">
+                    <input type="text" class="form-control" id="u_devID${index}" name="u_devID${index}" readonly required>
+                    <button class="btn btn-outline-primary checkDevId" type="button" data-index="${index}">검색</button>
+                </div>
+            </div>
+            <div class="col-12 mb-3">
+                <label for="u_name${index}" class="form-label required">추천 프로그래머명</label>
+                <input type="text" class="form-control" id="u_name${index}" name="u_name${index}" readonly required>
+            </div>
+            <div class="col-12 mb-3">
+                <label for="u_reason${index}" class="form-label required">프로그래머 추천이유</label>
+                <textarea class="form-control" id="u_reason${index}" name="u_reason${index}" rows="3" required></textarea>
+            </div>
+        `);
+
+        // 새로 추가된 검색 버튼에 이벤트 핸들러 연결
+        $(`button[data-index="${index}"]`).on("click", function () {
+            const currentIndex = $(this).data('index');
+            $('#dev-search-modal').data('currentIndex', currentIndex);
+            $('#dev-search-modal').data('isUpdate', true);
+            const searchModal = new bootstrap.Modal(document.getElementById('dev-search-modal'));
+            searchModal.show();
+        });
+    });
+
+    $('#u_del-recommender').click(function () {
+        $('#u_recommenderContainer').children().slice(-3).remove();
+    });
+
+    // 프로그래머 선택 버튼 클릭 이벤트 수정
+    $('#selectDevBtn').on("click", function () {
+        if (!selectedData) {
+            alert('프로그래머를 선택해주세요');
+            return;
+        }
+
+        const currentIndex = $('#dev-search-modal').data('currentIndex');
+        const isUpdate = $('#dev-search-modal').data('isUpdate');
+        const prefix = isUpdate ? 'u_' : '';
+
+        // 선택된 프로그래머 정보를 해당 index의 입력 필드에 설정
+        $(`#${prefix}devID${currentIndex}`).val(selectedData.ID);
+        $(`#${prefix}name${currentIndex}`).val(selectedData.DEV_NAME);
+
+        // 모달 닫기
+        const searchModal = bootstrap.Modal.getInstance(document.getElementById('dev-search-modal'));
+        searchModal.hide();
     });
 
     // 도서 수정 실행
@@ -514,12 +665,12 @@ $(document).ready(function () {
                 devRecommends: devRecommends
             }),
             success: function (response) {
-                alert('도서가 성공적으로 수정되었습니다!!!');
+                alert('도서가 성공적으로 수정되었습니다');
                 $('#book-update').modal('hide');
                 location.reload();
             },
             error: function (error) {
-                alert('도서 수정에 실패했습니다!!!');
+                alert('도서 수정에 실패했습니다');
                 console.error('에러:', error);
             }
         });
@@ -563,7 +714,7 @@ $('#DELETE_DEV').on('click', function (e) {
 $('#DELETE_BOOK').on('click', function (e) {
     if (!selectedData) {
         e.preventDefault();
-        alert('삭제할 도서를 선택해주세요!!!');
+        alert('삭제할 도서를 선택해주');
         return;
     }
 
@@ -574,11 +725,11 @@ $('#DELETE_BOOK').on('click', function (e) {
             contentType: 'application/json',
             data: JSON.stringify({ BOOK_ID: selectedData.BOOK_ID }),
             success: function (response) {
-                alert('도서가 성공적으로 삭제되었습니다!!!');
+                alert('도서가 성공적으로 삭제되었습니다');
                 location.reload();
             },
             error: function (error) {
-                alert('도서 삭제에 실패했습니다!!!');
+                alert('도서 삭제에 실패했습니다');
                 console.error('에러:', error);
             }
         });

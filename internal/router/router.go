@@ -1,12 +1,15 @@
 package router
 
 import (
+	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 
 	"DBP/internal/handler"
 	"DBP/internal/middleware"
 	"DBP/internal/repository"
+	"DBP/internal/service/chat"
 	service "DBP/internal/service/rag_book_service"
 	"DBP/pkg/database"
 
@@ -14,14 +17,13 @@ import (
 )
 
 func SetupRouter(g *gin.Engine, db *database.MariaDBHandler, redis *database.RedisHandler) {
-	// CORS 설정을 더 엄격하게 수정
 	g.Use(func(c *gin.Context) {
 		frontendURL := os.Getenv("FRONTEND_URL")
 		c.Writer.Header().Set("Access-Control-Allow-Origin", frontendURL) // 프론트엔드 도메인
 		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
 		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
 		c.Writer.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
-		c.Writer.Header().Set("Access-Control-Expose-Headers", "Set-Cookie") // 추가!!!
+		c.Writer.Header().Set("Access-Control-Expose-Headers", "Set-Cookie") // 추가
 
 		// preflight request 처리
 		if c.Request.Method == "OPTIONS" {
@@ -29,23 +31,25 @@ func SetupRouter(g *gin.Engine, db *database.MariaDBHandler, redis *database.Red
 			return
 		}
 
-		// 모든 요청에 대해 SameSite 속성을 Lax로 설정
-		c.SetSameSite(http.SameSiteLaxMode) // 추가!!!
-
+		c.SetSameSite(http.SameSiteLaxMode)
 		c.Next()
 	})
 
 	// 요청 본문 크기 제한을 10MB로 설정
-	g.MaxMultipartMemory = 10 << 20 // 10 MB
+	//g.MaxMultipartMemory = 10 << 20 // 10 MB
 
 	// gin의 기본 요청 크기 제한 설정
-	g.Use(func(c *gin.Context) {
-		c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, 10<<20) // 10MB
-		c.Next()
-	})
-	// 정적 파일 제공 설정 (URL경로, 실제 파일시스템 경로)
+	//g.Use(func(c *gin.Context) {
+	// c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, 10<<20) // 10MB
+	// c.Next()
+	//})
+	// 정적 파일 제공 설정 수정
 	g.Static("/node_modules", "../view/node_modules")
 	g.Static("/assets", "../view/assets")
+	// uploads 경로를 절대 경로로 수정
+	uploadPath := filepath.Join(".", "uploads")
+	log.Printf("업로드 경로: %s", uploadPath)
+	g.Static("/uploads", uploadPath)
 	g.StaticFile("/favicon.ico", "../favicon.ico")
 
 	// 템플릿 경로 설정
@@ -72,6 +76,10 @@ func SetupRouter(g *gin.Engine, db *database.MariaDBHandler, redis *database.Red
 	bookdetail := handler.NewBookHandler(repo)
 	// 관리자 메뉴 (추천책등록, 개발자등록, 공지사항등록)
 	adminHandler := handler.NewAdminHandler(repo)
+
+	// 채팅 서버 및 핸들러 초기화
+	chatServer := chat.NewChatServer(db, redis)
+	chatHandler := handler.NewChatHandler(chatServer)
 
 	// 인증이 필요없는 public 라우트
 	public := g.Group("/")
@@ -109,6 +117,10 @@ func SetupRouter(g *gin.Engine, db *database.MariaDBHandler, redis *database.Red
 		// 로그아웃
 		private.POST("/auth/signout", userHandler.SignOut)
 		private.POST("/logout", userHandler.SignOut)
+
+		// 책챗리뷰채팅 관련 라우트
+		private.GET("/ws/chat", chatHandler.HandleWebSocket)
+		private.GET("/api/chat/messages/:bookId", chatHandler.GetChatMessages)
 
 		// 계정 관리
 		account := private.Group("/account")
