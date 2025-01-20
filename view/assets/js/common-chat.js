@@ -19,7 +19,7 @@ function appendMessage(userName, side, text, time) {
         <div class="msg ${side}-msg">
             <div class="msg-bubble ${side}-bubble">
                 <div class="msg-info">
-                    <div class="msg-info-name">${userName}</div>
+                    <div class="msg-info-name">${userId}(${userName})</div>
                     <div class="msg-info-time">${time}</div>
                 </div>
                 <div class="msg-text">${text}</div>

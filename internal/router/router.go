@@ -1,7 +1,6 @@
 package router
 
 import (
-	"log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -46,10 +45,13 @@ func SetupRouter(g *gin.Engine, db *database.MariaDBHandler, redis *database.Red
 	// 정적 파일 제공 설정 수정
 	g.Static("/node_modules", "../view/node_modules")
 	g.Static("/assets", "../view/assets")
-	// uploads 경로를 절대 경로로 수정
-	uploadPath := filepath.Join(".", "uploads")
-	log.Printf("업로드 경로: %s", uploadPath)
-	g.Static("/uploads", uploadPath)
+	// 도커 볼륨에 마운트된 스토리지 경로 설정
+	profilePath := filepath.Join("/app", "storage", "image", "profile")
+	devPath := filepath.Join("/app", "storage", "image", "dev")
+	// log.Printf("업로드 경로: %s", uploadPath)
+	// g.Static("/uploads", uploadPath)
+	g.Static("/image/profile", profilePath)
+	g.Static("/image/dev", devPath)
 	g.StaticFile("/favicon.ico", "../favicon.ico")
 
 	// 템플릿 경로 설정
