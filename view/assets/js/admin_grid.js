@@ -315,7 +315,7 @@ $(document).ready(function () {
 
         // 이미지가 있는 경우 미리보기 표시 및 hidden input 추가
         if (selectedData.PROFILE_IMAGE_PATH) {
-            const imagePath = '/storage/image/dev' + selectedData.PROFILE_IMAGE_PATH.replace(/\\/g, '/');
+            const imagePath = '/storage/image/dev' + selectedData.PROFILE_IMAGE_PATH;
             $('#update-profile-img').attr('src', imagePath);
             $('#existing_image_path').val(imagePath);
         }
@@ -363,7 +363,7 @@ $(document).ready(function () {
             success: function (response) {
                 console.log('서버응답:', response);
                 if (response.PROFILE_IMAGE_PATH) {
-                    const imagePath = '/storage/image/dev' + response.PROFILE_IMAGE_PATH.replace(/\\/g, '/');
+                    const imagePath = '/storage/image/dev' + response.PROFILE_IMAGE_PATH;
                     $('#update-profile-img').attr('src', imagePath);
                 }
                 alert("개발자 수정에 성공했습니다");

@@ -46,12 +46,12 @@ func SetupRouter(g *gin.Engine, db *database.MariaDBHandler, redis *database.Red
 	g.Static("/node_modules", "../view/node_modules")
 	g.Static("/assets", "../view/assets")
 	// 도커 볼륨에 마운트된 스토리지 경로 설정
-	profilePath := filepath.Join("/app", "storage", "image", "profile")
-	devPath := filepath.Join("/app", "storage", "image", "dev")
+	profilePath := filepath.Join("/docker/dbpstorage/image/profile") // 유저 프로필용
+	devPath := filepath.Join("/docker/dbpstorage/image/dev")         // 개발자 프로필용
 	// log.Printf("업로드 경로: %s", uploadPath)
 	// g.Static("/uploads", uploadPath)
-	g.Static("/storage/image/profile", profilePath)
-	g.Static("/storage/image/dev", devPath)
+	g.Static("/storage/image/profile", profilePath) // 유저 프로필 접근 URL
+	g.Static("/storage/image/dev", devPath)         // 개발자 프로필 접근 URL
 	g.StaticFile("/favicon.ico", "../favicon.ico")
 
 	// 템플릿 경로 설정

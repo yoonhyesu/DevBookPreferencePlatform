@@ -6,7 +6,6 @@ import (
 	"DBP/internal/repository"
 	"log"
 	"net/http"
-	"os"
 	"path/filepath"
 
 	"github.com/gin-gonic/gin"
@@ -172,11 +171,8 @@ func (u *UserHandler) GetUserProfile(c *gin.Context) {
 }
 
 // 프로필 이미지 환경변수 가져오기
-func getProfileImagePath() string {
-	if path := os.Getenv("PROFILE_PATH"); path != "" {
-		return path
-	}
-	return ""
+func getUserProfilePath() string {
+	return "/docker/dbpstorage/image/profile"
 }
 
 // 프로필 수정
@@ -229,30 +225,19 @@ func (h *UserHandler) ProfileEdit(c *gin.Context) {
 	// 이미지 처리
 	if files := form.File["PROFILE_IMAGE"]; len(files) > 0 {
 		file := files[0]
-
-		// 파일 확장자 가져오기
 		ext := filepath.Ext(file.Filename)
-
-		// 환경변수 가져오기
-		uploadDir := filepath.Join(".", getProfileImagePath())
-		log.Printf("업로드 경로: %s", uploadDir)
-
-		// 환경변수로 설정된 디렉토리 참고
-		if err := os.MkdirAll(uploadDir, 0755); err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "디렉토리 생성 중 오류"})
-			return
-		}
-
-		// 새로운 파일명 생성 (UUID + 확장자)
 		newFileName := uuid.New().String() + ext
-		filePath := filepath.Join(uploadDir, newFileName)
 
-		// 파일 저장
-		if err := c.SaveUploadedFile(file, filePath); err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "이미지 저장 중 오류 발생"})
+		// DB에는 파일명만 저장
+		profileImagePath := "/" + newFileName
+
+		// 실제 파일 저장 (유저 프로필 디렉토리에)
+		uploadPath := filepath.Join(getUserProfilePath(), newFileName)
+		if err := c.SaveUploadedFile(file, uploadPath); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "이미지 저장 실패"})
 			return
 		}
-		req.ProfileImagePath = "/" + filePath
+		req.ProfileImagePath = profileImagePath
 	} else {
 		// 이미지가 업로드되지 않은 경우 기존 프로필 이미지 경로 가져오기
 		existingProfile, err := h.repo.GetUserProfile(userID)

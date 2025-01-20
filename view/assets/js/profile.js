@@ -45,9 +45,9 @@ function UserInfoLoad() {
 
         // 이미지 경로가 있을 때만 설정하도록 수정
         if (response.PROFILE_IMAGE_PATH) {
-            const imagePath = '/storage/image/profile' + response.PROFILE_IMAGE_PATH.replace(/\\/g, '/');
+            const imagePath = '/storage/image/profile' + response.PROFILE_IMAGE_PATH;
             preview.src = imagePath;
-            console.log('변환된 이미지 경로:', imagePath);
+            console.log('유저 프로필 이미지 경로:', imagePath);
         } else {
             preview.src = '/assets/images/profile.png';
         }
