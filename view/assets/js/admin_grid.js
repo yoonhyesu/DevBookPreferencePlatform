@@ -226,10 +226,15 @@ $(document).ready(function () {
                     title: "프로필 이미지",
                     field: "PROFILE_IMAGE_PATH",
                     sorter: "string",
-                    formatter: "image",
-                    formatterParams: {
-                        height: "100px",
-                        width: "100px"
+                    formatter: function (cell, formatterParams, onRendered) {
+                        const value = cell.getValue();
+                        if (!value) return "";
+
+                        // DB에 저장된 경로에서 파일명만 추출
+                        const fileName = value.split('/').pop();
+                        const imagePath = '/storage/image/dev/' + fileName;
+
+                        return `<img src="${imagePath}" style="height:100px; width:100px;">`;
                     },
                     width: 200
                 },
@@ -315,9 +320,10 @@ $(document).ready(function () {
 
         // 이미지가 있는 경우 미리보기 표시 및 hidden input 추가
         if (selectedData.PROFILE_IMAGE_PATH) {
-            const imagePath = '/storage/image/dev' + selectedData.PROFILE_IMAGE_PATH;
+            // DB에 저장된 경로에서 파일명만 추출
+            const fileName = selectedData.PROFILE_IMAGE_PATH.split('/').pop();
+            const imagePath = '/storage/image/dev/' + fileName;
             $('#update-profile-img').attr('src', imagePath);
-            $('#existing_image_path').val(imagePath);
         }
 
         // Bootstrap 5 방식으로 모달 표시
