@@ -178,12 +178,6 @@ $(document).ready(function () {
             }
         }
 
-        // 최소 1명 이상의 추천 프로그래머 필요
-        if (devContents.length === 0) {
-            alert('최소 1명 이상의 추천 프로그래머가 필요합니다');
-            return;
-        }
-
         // 데이터 형식 변환
         const sendData = {
             book: {
