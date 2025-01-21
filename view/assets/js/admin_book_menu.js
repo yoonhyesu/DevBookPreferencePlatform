@@ -194,7 +194,7 @@ $(document).ready(function () {
                 TAGS: $('#bookTag').val().length ? '&' + $('#bookTag').val().join('&') + '&' : '',
                 GRADE: cleanString($('#grade').val()),
                 ISBN: cleanString($('#isbn').val()),
-                DEL_YN: false,
+                DEL_YN: 0,
                 ISBN_ADD: cleanString($('#isbnAddCode').val()),
                 PAGE: parseInt($('#page').val()) || 0,
                 EBOOK_YN: cleanString($('#ebookYn').val())
