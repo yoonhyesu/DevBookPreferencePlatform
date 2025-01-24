@@ -118,7 +118,7 @@ $(document).ready(function () {
     }
 
 
-    // 추천 도서 관리
+    // 관리자 추천 도서 관리
     if (document.getElementById("admin_book_table")) {
         admin_book_table = new Tabulator("#admin_book_table", {
             height: "1000px",
