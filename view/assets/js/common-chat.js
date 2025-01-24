@@ -139,6 +139,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 채팅 초기화
   initializeChat();
+  console.log("작동하냐?")
 });
 
 function initializeChat() {
@@ -198,7 +199,7 @@ function loadPreviousMessages() {
     console.error('책 ID가 없어 이전 메시지를 로드할 수 없습니다');
     return;
   }
-
+  console.log('bookid', bookId)
   fetch(`/api/chat/messages/${bookId}`)
     .then(response => {
       if (!response.ok) {
@@ -216,3 +217,6 @@ function loadPreviousMessages() {
     })
     .catch(error => console.error('이전 메시지 로드 실패:', error));
 }
+
+// 이전 메시지 로드
+

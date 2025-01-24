@@ -25,7 +25,7 @@ func main() {
 
 	gin.DisableConsoleColor()
 
-	// 파일에 로그를 작성합니다.
+	// 로그 작성
 	f, _ := os.Create("DBP.log")
 	gin.DefaultWriter = io.MultiWriter(f, os.Stdout)
 	log.SetOutput(io.MultiWriter(f, os.Stdout))

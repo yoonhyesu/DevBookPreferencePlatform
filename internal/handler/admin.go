@@ -34,7 +34,8 @@ func (a *AdminHandler) GetDevList(c *gin.Context) {
 
 // 개발자 프로필 이미지 환경변수 가져오기
 func getDevImagePath() string {
-	return "/docker/dbpstorage/image/dev"
+	//return "/docker/dbpstorage/image/dev"
+	return "/storage/image/dev"
 }
 
 // 개발자 등록 API
