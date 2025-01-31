@@ -37,12 +37,13 @@ function dev_add() {
     }
 
     // 나머지 데이터 추가
-    const dev_main_exposure = $('#dev_main_exposure').val() === "true" ? true : false
+    const dev_main_exposure = $('#dev_main_exposure').val() === 'true' ? true : false
     formData.append('DEV_NAME', $('#dev_name').val());
     formData.append('DEV_DETAIL_NAME', $('#dev_detail_name').val());
     formData.append('DEV_HISTORY', $('#dev_history').val());
     formData.append('VIEW_YN', dev_main_exposure);
 
+    // FormData 내용 확인
     for (let pair of formData.entries()) {
         console.log(pair[0] + ': ' + pair[1]);
     }
@@ -55,15 +56,13 @@ function dev_add() {
         data: formData,
         success: function (response) {
             console.log('서버응답;', response);
-            if (response.PROFILE_IMAGE_PATH) {
-                $('#profile-img').attr('src', '/storage' + response.PROFILE_IMAGE_PATH);
-            }
             alert("개발자 등록에 성공했습니다");
             $('#dev-add').modal('hide');
             location.reload();
         },
         error: function (error) {
+            console.error('에러:', error);
             alert("개발자 등록 실패");
         }
-    })
+    });
 }
