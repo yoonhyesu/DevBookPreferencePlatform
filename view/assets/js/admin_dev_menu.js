@@ -1,9 +1,21 @@
-var input = document.querySelector('#image_uploads');
-var preview = document.getElementById('dev-img');
+// DOM 요소 선언
+let input;
+let preview;
 
-$(function () {
-    input.addEventListener('change', updateImageDisplay);
-})
+// DOM이 완전히 로드된 후 실행
+$(document).ready(function () {
+    // DOM 요소 초기화
+    input = document.querySelector('#image_uploads');
+    preview = document.getElementById('dev-img');
+
+    // 요소가 존재하는지 확인 후 이벤트 리스너 등록
+    if (input && preview) {
+        input.addEventListener('change', updateImageDisplay);
+        console.log('이미지 업로드 이벤트 리스너 등록 완료!!!');
+    } else {
+        console.error('이미지 업로드 요소를 찾을 수 없습니다!!!');
+    }
+});
 
 // 프로필 업로드 미리보기
 function updateImageDisplay() {
