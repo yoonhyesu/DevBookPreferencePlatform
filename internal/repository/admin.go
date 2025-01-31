@@ -5,7 +5,8 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
-	"strconv"
+
+	"github.com/google/uuid"
 )
 
 // 개발자 조회
@@ -25,7 +26,7 @@ func (m *CommonRepo) GetDevList() []model.AddDevs {
 	var devs []model.AddDevs
 	for rows.Next() {
 		var dev model.AddDevs
-		var profileImagePath sql.NullString // NULL을 허용하는 타입으로 변경!!!
+		var profileImagePath sql.NullString // NULL을 허용하는 타입으로 변경
 
 		err := rows.Scan(
 			&dev.DevID,
@@ -33,7 +34,7 @@ func (m *CommonRepo) GetDevList() []model.AddDevs {
 			&dev.DevDetailName,
 			&dev.DevHistory,
 			&dev.ViewYN,
-			&profileImagePath, // NullString으로 스캔!!!
+			&profileImagePath, // NullString으로 스캔
 			&dev.DelYN,
 		)
 		if err != nil {
@@ -41,7 +42,7 @@ func (m *CommonRepo) GetDevList() []model.AddDevs {
 			continue
 		}
 
-		// NULL 체크 후 값 할당!!!
+		// NULL 체크 후 값 할당
 		if profileImagePath.Valid {
 			dev.ProfileImagePath = profileImagePath.String
 		} else {
@@ -85,45 +86,16 @@ func (m *CommonRepo) GetDevID(devID string) (model.AddDevs, error) {
 	return dev, nil
 }
 
-// 마지막 개발자 ID 조회
-func (m *CommonRepo) getLastDevID() (string, error) {
-	var lastID string
-	err := m.mariaDB.Connection.QueryRow(`
-	SELECT ID 
-	FROM dbp.dev_infos 
-	ORDER BY ID DESC 
-	LIMIT 1
-	`).Scan(&lastID)
-
-	if err != nil {
-		if err.Error() == "sql: no rows in result set" {
-			return "DEV_000", nil // 데이터가 없는 경우 초기값 반환
-		}
-		return "", err
-	}
-	return lastID, nil
-}
-
 // 새로운 개발자 ID 생성
-func generateNextDevID(lastID string) string {
-	// DEV_001 형식에서 숫자부분만 추출
-	numStr := lastID[4:] // "001"
-	num, _ := strconv.Atoi(numStr)
-	nextNum := num + 1
-	// 새로운 ID 생성 (3자리 숫자 형식 유지)
-	return fmt.Sprintf("DEV_%03d", nextNum)
+func generateDevID() string {
+	// UUID v4 생성 후 처음 12자리만 사용
+	return uuid.New().String()[:12]
 }
 
 // 개발자 등록
 func (m *CommonRepo) AddDev(dev model.AddDevs) error {
-	// 마지막 ID 조회
-	lastID, err := m.getLastDevID()
-	if err != nil {
-		return err
-	}
-
-	// 새로운 ID 생성
-	newID := generateNextDevID(lastID)
+	// 새로운 UUID 기반 ID 생성
+	newID := generateDevID()
 
 	query := `
 	INSERT INTO dbp.dev_infos 
@@ -131,7 +103,7 @@ func (m *CommonRepo) AddDev(dev model.AddDevs) error {
 	VALUES (?, ?, ?, ?, ?, ?)
 	`
 	// 개발자 등록
-	_, err = m.mariaDB.Connection.Exec(query,
+	_, err := m.mariaDB.Connection.Exec(query,
 		newID, dev.DevName, dev.DevDetailName, dev.DevHistory, dev.ProfileImagePath, dev.ViewYN)
 	return err
 }
