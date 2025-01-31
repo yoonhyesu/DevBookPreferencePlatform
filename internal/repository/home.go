@@ -2,6 +2,7 @@ package repository
 
 import (
 	"DBP/internal/model"
+	"os"
 	"strings"
 	"time"
 
@@ -79,7 +80,7 @@ func (m *CommonRepo) GetHomeDevBook() model.HomeDevBook {
 			devBook.DevName = devName
 			devBook.DevHistory = devHistory
 			devBook.DevDetailName = devDetailName
-			devBook.ProfileImagePath = profileImagePath
+			devBook.ProfileImagePath = os.Getenv("DEV_PATH") + "/" + profileImagePath
 			devBook.Books = []model.Book{}
 			first = false
 		}
