@@ -5,27 +5,28 @@ let preview;
 // DOM이 완전히 로드된 후 실행
 $(document).ready(function () {
     // DOM 요소 초기화
-    input = document.querySelector('#image_uploads');
+    input = document.getElementById('image_uploads');
     preview = document.getElementById('dev-img');
 
     // 요소가 존재하는지 확인 후 이벤트 리스너 등록
     if (input && preview) {
-        input.addEventListener('change', updateImageDisplay);
-        console.log('이미지 업로드 이벤트 리스너 등록 완료!!!');
+        input.addEventListener('change', function (e) {
+            const file = e.target.files[0];
+            if (file && validFileType(file)) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    preview.src = e.target.result;
+                }
+                reader.readAsDataURL(file);
+                console.log('이미지 프리뷰 업데이트 완료!!!');
+            } else {
+                alert('이미지를 불러올 수 없습니다!!!');
+            }
+        });
     } else {
-        console.error('이미지 업로드 요소를 찾을 수 없습니다!!!');
+        console.error('이미지 업로드 요소를 찾을 수 없습니다');
     }
 });
-
-// 프로필 업로드 미리보기
-function updateImageDisplay() {
-    const file = input.files[0];
-    if (file && validFileType(file)) {
-        preview.src = URL.createObjectURL(file);
-    } else {
-        alert('이미지를 불러올 수 없습니다');
-    }
-}
 
 const fileTypes = [
     'image/jpeg',
