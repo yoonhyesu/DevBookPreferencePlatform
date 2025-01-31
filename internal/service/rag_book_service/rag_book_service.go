@@ -270,7 +270,7 @@ func (rs *RagServer) fetchAndCacheBooks() *BookSearchResponse {
 
 // 실제 API 호출
 func (rs *RagServer) fetchLatestBooks() *BookSearchResponse {
-	startDate := time.Now().AddDate(0, -1, 0).Format("20060102")
+	startDate := time.Now().AddDate(0, 0, -10).Format("20060102")
 	endDate := time.Now().Format("20060102")
 
 	var allBooks []RagBook

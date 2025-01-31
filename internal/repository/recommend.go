@@ -98,6 +98,8 @@ func (m *CommonRepo) GetRecommendDevList() []model.DevInfo {
 			log.Printf("개발자 %s의 이미지 경로 변환: %s", dev.DevName, dev.ProfileImagePath)
 		}
 
+		dev.ProfileImagePath = "/storage/image/dev/" + dev.ProfileImagePath
+
 		devList = append(devList, dev)
 	}
 	return devList
@@ -176,6 +178,7 @@ func (m *CommonRepo) GetDevRecommendedBooks(devID string) []model.DevBookLikeRea
 			log.Println("책 정보 스캔 중 오류:", err)
 			continue
 		}
+		book.ProfileImagePath = "/storage/image/dev/" + book.ProfileImagePath
 		books = append(books, book)
 	}
 	return books
