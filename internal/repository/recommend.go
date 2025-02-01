@@ -160,7 +160,7 @@ func (m *CommonRepo) GetDevRecommendedBooks(devID string) []model.DevBookLikeRea
 		B.COVER_URL,
 		C.PROFILE_IMAGE_PATH
 	FROM dbp.dev_recommends A
-	INNER JOIN dbp.BOOK_INFOS B ON A.BOOK_ID = B.BOOK_ID 
+	INNER JOIN dbp.BOOK _INFOS B ON A.BOOK_ID = B.BOOK_ID 
 	INNER JOIN dbp.dev_infos C ON A.DEV_ID = C.ID
 	WHERE A.DEL_YN = 0 AND A.DEV_ID = ?`, devID)
 

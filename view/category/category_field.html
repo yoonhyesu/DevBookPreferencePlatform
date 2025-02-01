@@ -128,10 +128,18 @@
 
             <div class="row g-5 mb-5">
                 <div class="col-12">
-                    <h4 class="fw-semibold mb-3">분야별 추천</h4>
+                    <h4 class="fw-semibold mb-3">키워드별 추천</h4>
                     <hr class="my-3">
+                    <div class="d-flex justify-content-center mb-3 mt-5">
+                        <div class="w-25 p-3 rounded-3 shadow-sm" style="background-color: #f8f9fa;">
+                            <p class="fs-6 fw-semibold text-center mb-2" style="color: #495057;">원하는 키워드를 찾아보세요! 🔍</p>
+                            <input class="form-control border-2 shadow-sm" id="tagInput" type="text"
+                                placeholder="예시:알고리즘">
+                        </div>
+                    </div>
                     <div class="category-area mt-5">
-                        <ul class="d-flex w-100 flex-wrap justify-content-center row-gap-3 column-gap-5 ps-0">
+                        <ul class="d-flex w-100 flex-wrap justify-content-center row-gap-3 column-gap-5 ps-0"
+                            id="tagList">
                             <!-- tag 조회 -->
                             {{ range .Tags }}
                             <li class="inline-flex">
