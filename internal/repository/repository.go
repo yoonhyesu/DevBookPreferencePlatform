@@ -20,7 +20,7 @@ type Repository interface {
 	GetTagList() []model.TagList
 	GetTagWithBookList(tagID int) []model.TagWithBook
 	GetBookDetail(bookID int) []model.BookInfo
-	///'......ㅇㄴ() []model.DevInfo
+	GetRecommendDevList() []model.DevInfo
 	GetDevInfo(devID string) []model.DevDetail
 	GetDevRecommendedBooks(devID string) []model.DevBookLikeReason
 	GetStepWithBook(step string) []model.BookInfo
