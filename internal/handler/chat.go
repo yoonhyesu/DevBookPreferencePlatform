@@ -4,6 +4,7 @@ import (
 	"DBP/internal/service/chat"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -21,9 +22,9 @@ var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool {
 		origin := r.Header.Get("Origin")
 		allowedOrigins := []string{
-			"http://192.168.102.200:7777",
-			"http://192.168.102.200",
-			"http://localhost:7777",
+			os.Getenv("ALLOWED_ORIGIN1"),
+			os.Getenv("ALLOWED_ORIGIN2"),
+			os.Getenv("ALLOWED_ORIGIN3"),
 		}
 		for _, allowed := range allowedOrigins {
 			if origin == allowed {

@@ -38,7 +38,7 @@ export function initSearch() {
 
 // 이미지 URL 처리 함수 추가
 function getImageUrl(path) {
-    if (!path) return '/assets/images/no-image.jpg';
+    if (!path) return '/assets/images/profile.PNG';
     // 백슬래시를 슬래시로 변환하고 URL 인코딩
     return path.replace(/\\/g, '/').split('/').map(encodeURIComponent).join('/');
 }
@@ -183,7 +183,7 @@ $(document).ready(function () {
         });
     }
 
-    // 개발자 관리 
+    // 개발자 조회 테이블
     if (document.getElementById("admin_dev_table")) {
         admin_dev_table = new Tabulator("#admin_dev_table", {
             height: "1000px",
@@ -230,9 +230,9 @@ $(document).ready(function () {
                         const value = cell.getValue();
                         if (!value) return "";
 
-                        // DB에 저장된 경로에서 파일명만 추출
-                        const fileName = value.split('/').pop();
-                        const imagePath = '/storage/image/dev/' + fileName;
+                        // 앞의 슬래시(/)를 제거하고 경로 생성
+                        const fileName = value.replace(/^\//, '');  // 앞의 슬래시 제거
+                        const imagePath = '/uploads/dev/' + fileName;
 
                         return `<img src="${imagePath}" style="height:100px; width:100px;">`;
                     },

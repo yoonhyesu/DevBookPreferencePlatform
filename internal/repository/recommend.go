@@ -2,6 +2,7 @@ package repository
 
 import (
 	"DBP/internal/model"
+	"os"
 
 	"log"
 	"strings"
@@ -98,7 +99,7 @@ func (m *CommonRepo) GetRecommendDevList() []model.DevInfo {
 			log.Printf("개발자 %s의 이미지 경로 변환: %s", dev.DevName, dev.ProfileImagePath)
 		}
 
-		dev.ProfileImagePath = "/storage/image/dev/" + dev.ProfileImagePath
+		dev.ProfileImagePath = os.Getenv("SELECT_DEV_PATH") + dev.ProfileImagePath
 
 		devList = append(devList, dev)
 	}
@@ -134,6 +135,7 @@ func (m *CommonRepo) GetDevInfo(devID string) []model.DevDetail {
 		c5 = strings.ReplaceAll(c5, "\\", "/")
 		log.Printf("개발자 %s의 이미지 경로 변환: %s", c2, c5)
 	}
+	c5 = os.Getenv("SELECT_DEV_PATH") + c5
 
 	temp := model.DevDetail{
 		DevID:            c1,
@@ -144,6 +146,7 @@ func (m *CommonRepo) GetDevInfo(devID string) []model.DevDetail {
 		ViewYN:           c6,
 		DelYN:            c7,
 	}
+
 	all = append(all, temp)
 	log.Println("개발자 상세정보:", all)
 	return all

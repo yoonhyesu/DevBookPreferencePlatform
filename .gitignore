@@ -75,6 +75,6 @@ $RECYCLE.BIN/
 # Upload Directories
 cmd/uploads/
 cmd/uploads/*
-cmd/uploads/profiles/
+cmd/uploads/profile/
 cmd/uploads/dev/
 # End of https://www.toptal.com/developers/gitignore/api/visualstudiocode,go,windows

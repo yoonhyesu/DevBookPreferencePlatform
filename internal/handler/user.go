@@ -6,6 +6,7 @@ import (
 	"DBP/internal/repository"
 	"log"
 	"net/http"
+	"os"
 	"path/filepath"
 
 	"github.com/gin-gonic/gin"
@@ -166,13 +167,13 @@ func (u *UserHandler) GetUserProfile(c *gin.Context) {
 		"COMPANY":            userInfo.Company,
 		"GITHUB_LINK":        userInfo.GithubLink,
 		"BLOG_LINK":          userInfo.BlogLink,
-		"PROFILE_IMAGE_PATH": userInfo.ProfileImagePath,
+		"PROFILE_IMAGE_PATH": os.Getenv("SELECT_PROFILE_PATH") + "/" + userInfo.ProfileImagePath,
 	})
 }
 
 // 프로필 이미지 환경변수 가져오기
 func getUserProfilePath() string {
-	return "/docker/dbpstorage/image/profile"
+	return os.Getenv("PROFILE_PATH")
 }
 
 // 프로필 수정
@@ -229,7 +230,7 @@ func (h *UserHandler) ProfileEdit(c *gin.Context) {
 		newFileName := uuid.New().String() + ext
 
 		// DB에는 파일명만 저장
-		profileImagePath := "/" + newFileName
+		profileImagePath := newFileName
 
 		// 실제 파일 저장 (유저 프로필 디렉토리에)
 		uploadPath := filepath.Join(getUserProfilePath(), newFileName)
