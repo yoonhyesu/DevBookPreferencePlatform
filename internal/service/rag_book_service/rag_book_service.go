@@ -84,9 +84,14 @@ var PUBLISHERS = []string{
 	"위키북스",
 	"이지스퍼블리싱",
 	"길벗",
-	"에이콘출판사",
+	"에이콘출판",
 	"제이펍",
 	"프리렉",
+	"리코멘드",
+	"인사이트",
+	"생능출판",
+	"제이비",
+	"한빛아카데미",
 }
 
 func init() {
@@ -270,7 +275,7 @@ func (rs *RagServer) fetchAndCacheBooks() *BookSearchResponse {
 
 // 실제 API 호출
 func (rs *RagServer) fetchLatestBooks() *BookSearchResponse {
-	startDate := time.Now().AddDate(0, 0, -10).Format("20060102")
+	startDate := time.Now().AddDate(0, 0, -30).Format("20060102")
 	endDate := time.Now().Format("20060102")
 
 	var allBooks []RagBook

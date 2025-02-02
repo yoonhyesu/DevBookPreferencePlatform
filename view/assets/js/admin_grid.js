@@ -46,6 +46,9 @@ function getImageUrl(path) {
 $(document).ready(function () {
     let admin_notice_table, admin_book_table, admin_dev_table;
 
+    // 수정할 도서의 ID를 저장할 전역 변수
+    let currentBookId;
+
     // 공지사항 관리
     if (document.getElementById("admin_notice_table")) {
         admin_notice_table = new Tabulator("#admin_notice_table", {
@@ -497,6 +500,9 @@ $(document).ready(function () {
             return;
         }
 
+        // 선택된 도서의 ID를 전역 변수에 저장
+        currentBookId = selectedData.BOOK_ID;
+
         // 기본 정보 바인딩
         $('#u_book_title').val(selectedData.BOOK_TITLE);
         $('#u_author').val(selectedData.AUTHOR);
@@ -514,10 +520,45 @@ $(document).ready(function () {
         $('#u_summary').val(selectedData.SUMMARY);
         $('#u_recommendation').val(selectedData.RECOMMENDATION);
 
-        // 태그 선택 설정
-        const tags = selectedData.TAGS.split(',');
-        const choicesInstance = new Choices('#u_book_tag');
-        choicesInstance.setValue(tags);
+        // 들어오는 데이터 => &25&32&
+        const tagIds = selectedData.TAGS
+            .split('&')
+            .filter(tag => tag !== '');  // 빈 문자열 제거
+
+        const choicesInstance = new Choices('#u_book_tag', {
+            removeItemButton: true,
+            searchEnabled: true,
+            placeholder: true,
+            placeholderValue: '태그를 선택해주세요(최대 5개)'
+        });
+
+        // 기존 태그 데이터 가져오기
+        $.ajax({
+            url: '/admin/book/tags',
+            method: 'GET',
+            success: function (tagsData) {
+                const choices = tagsData.map(tag => ({
+                    value: tag.TAG_ID.toString(),
+                    label: tag.TAG_NAME
+                }));
+
+                // 먼저 전체 태그 옵션을 설정
+                choicesInstance.setChoices(choices, 'value', 'label', true);
+
+                // 선택된 태그 ID에 해당하는 태그 객체들을 찾아서 설정
+                const selectedTags = tagIds.map(tagId => {
+                    const matchingTag = choices.find(choice => choice.value === tagId);
+                    return matchingTag;
+                }).filter(tag => tag !== undefined);
+
+                // 찾은 태그 객체들로 값 설정
+                choicesInstance.setValue(selectedTags);
+            },
+            error: function (xhr, status, error) {
+                console.error('태그 조회 실패:', error);
+                alert('태그 조회 실패');
+            }
+        });
 
         // 추천 프로그래머 컨테이너 초기화
         $('#u_recommenderContainer').empty();
@@ -526,24 +567,27 @@ $(document).ready(function () {
         if (selectedData.DEV_RECOMMENDS && selectedData.DEV_RECOMMENDS.length > 0) {
             selectedData.DEV_RECOMMENDS.forEach((rec, index) => {
                 $('#u_recommenderContainer').append(`
-                    <div class="col-12 mb-3">
-                        <label for="u_devID${index + 1}" class="form-label required">추천 프로그래머ID</label>
-                        <div class="input-group">
-                            <input type="text" class="form-control" id="u_devID${index + 1}" name="u_devID${index + 1}" 
-                                   value="${rec.DEV_ID}" readonly required>
-                            <button class="btn btn-outline-primary checkDevId" type="button" 
-                                    data-index="${index + 1}">검색</button>
+                    <div class="recommender-group" data-index="${index + 1}">
+                        <div class="col-12 mb-3">
+                            <label for="u_devID${index + 1}" class="form-label required">추천 프로그래머ID</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="u_devID${index + 1}" name="u_devID${index + 1}" 
+                                       value="${rec.DEV_ID}" readonly required>
+                                <button class="btn btn-outline-primary checkDevId" type="button" 
+                                        data-index="${index + 1}">검색</button>
+                                <button class="btn btn-outline-danger remove-recommender" type="button">삭제</button>
+                            </div>
                         </div>
-                    </div>
-                    <div class="col-12 mb-3">
-                        <label for="u_name${index + 1}" class="form-label required">추천 프로그래머명</label>
-                        <input type="text" class="form-control" id="u_name${index + 1}" 
-                               name="u_name${index + 1}" value="${rec.DEV_NAME}" readonly required>
-                    </div>
-                    <div class="col-12 mb-3">
-                        <label for="u_reason${index + 1}" class="form-label required">프로그래머 추천이유</label>
-                        <textarea class="form-control" id="u_reason${index + 1}" 
-                                  name="u_reason${index + 1}" rows="3" required>${rec.DEV_RECOMMEND_REASON}</textarea>
+                        <div class="col-12 mb-3">
+                            <label for="u_name${index + 1}" class="form-label required">추천 프로그래머명</label>
+                            <input type="text" class="form-control" id="u_name${index + 1}" 
+                                   name="u_name${index + 1}" value="${rec.DEV_NAME}" readonly required>
+                        </div>
+                        <div class="col-12 mb-3">
+                            <label for="u_reason${index + 1}" class="form-label required">프로그래머 추천이유</label>
+                            <textarea class="form-control" id="u_reason${index + 1}" 
+                                      name="u_reason${index + 1}" rows="3" required>${rec.DEV_RECOMMEND_REASON}</textarea>
+                        </div>
                     </div>
                 `);
 
@@ -563,66 +607,85 @@ $(document).ready(function () {
         updateModal.show();
     });
 
+
     // 프로그래머 추가/삭제 버튼 이벤트 (수정 모달용)
     $('#u_add-recommender').click(function () {
-        const index = ($('#u_recommenderContainer').children().length / 3) + 1;
-        $('#u_recommenderContainer').append(`
-            <div class="col-12 mb-3">
-                <label for="u_devID${index}" class="form-label required">추천 프로그래머ID</label>
-                <div class="input-group">
-                    <input type="text" class="form-control" id="u_devID${index}" name="u_devID${index}" readonly required>
-                    <button class="btn btn-outline-primary checkDevId" type="button" data-index="${index}">검색</button>
+        const index = $('#u_recommenderContainer .recommender-group').length + 1;
+        if (index > 5) {
+            alert('추천 프로그래머는 최대 5명까지만 등록 가능합니다!!!');
+            return;
+        }
+
+        const newRecommenderHtml = `
+            <div class="recommender-group" data-index="${index}">
+                <div class="col-12 mb-3">
+                    <label for="u_devID${index}" class="form-label required">추천 프로그래머ID</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="u_devID${index}" name="u_devID${index}" readonly required>
+                        <button class="btn btn-outline-primary checkDevId" type="button" data-index="${index}">검색</button>
+                        <button class="btn btn-outline-danger remove-recommender" type="button">삭제</button>
+                    </div>
+                </div>
+                <div class="col-12 mb-3">
+                    <label for="u_name${index}" class="form-label required">추천 프로그래머명</label>
+                    <input type="text" class="form-control" id="u_name${index}" name="u_name${index}" readonly required>
+                </div>
+                <div class="col-12 mb-3">
+                    <label for="u_reason${index}" class="form-label required">프로그래머 추천이유</label>
+                    <textarea class="form-control" id="u_reason${index}" name="u_reason${index}" rows="3" required></textarea>
                 </div>
             </div>
-            <div class="col-12 mb-3">
-                <label for="u_name${index}" class="form-label required">추천 프로그래머명</label>
-                <input type="text" class="form-control" id="u_name${index}" name="u_name${index}" readonly required>
-            </div>
-            <div class="col-12 mb-3">
-                <label for="u_reason${index}" class="form-label required">프로그래머 추천이유</label>
-                <textarea class="form-control" id="u_reason${index}" name="u_reason${index}" rows="3" required></textarea>
-            </div>
-        `);
+        `;
+
+        $('#u_recommenderContainer').append(newRecommenderHtml);
 
         // 새로 추가된 검색 버튼에 이벤트 핸들러 연결
         $(`button[data-index="${index}"]`).on("click", function () {
-            const currentIndex = $(this).data('index');
-            $('#dev-search-modal').data('currentIndex', currentIndex);
+            const clickedIndex = $(this).data('index');
+            $('#dev-search-modal').data('currentIndex', clickedIndex);
             $('#dev-search-modal').data('isUpdate', true);
             const searchModal = new bootstrap.Modal(document.getElementById('dev-search-modal'));
             searchModal.show();
         });
     });
 
-    $('#u_del-recommender').click(function () {
-        $('#u_recommenderContainer').children().slice(-3).remove();
-    });
-
     // 프로그래머 선택 버튼 클릭 이벤트 수정
     $('#selectDevBtn').on("click", function () {
-        if (!selectedData) {
-            alert('프로그래머를 선택해주세요');
+        const currentIndex = $('#dev-search-modal').data('currentIndex');
+        const isUpdate = $('#dev-search-modal').data('isUpdate');
+
+        // admin_dev_search_table에서 선택된 행 가져오기
+        const selectedRow = admin_dev_search_table.getSelectedRows();
+
+        if (selectedRow.length === 0) {
+            alert('프로그래머를 선택해주세요!!!');
             return;
         }
 
-        const currentIndex = $('#dev-search-modal').data('currentIndex');
-        const isUpdate = $('#dev-search-modal').data('isUpdate');
-        const prefix = isUpdate ? 'u_' : '';
+        const devData = selectedRow[0].getData();
 
         // 선택된 프로그래머 정보를 해당 index의 입력 필드에 설정
-        $(`#${prefix}devID${currentIndex}`).val(selectedData.ID);
-        $(`#${prefix}name${currentIndex}`).val(selectedData.DEV_NAME);
+        $(`#u_devID${currentIndex}`).val(devData.ID);
+        $(`#u_name${currentIndex}`).val(devData.DEV_NAME);
 
         // 모달 닫기
         const searchModal = bootstrap.Modal.getInstance(document.getElementById('dev-search-modal'));
         searchModal.hide();
+
+        // 테이블의 선택 초기화
+        admin_dev_search_table.deselectRow();
     });
 
-    // 도서 수정 실행
+    // 도서 수정 전송
     $('#update_book_btn').on('click', function () {
+        if (!currentBookId) {
+            alert('도서 정보가 올바르지 않습니다!!!');
+            return;
+        }
+
         // 폼 데이터 수집
         const bookData = {
-            BOOK_ID: selectedData.BOOK_ID,
+            BOOK_ID: currentBookId,  // selectedData 대신 저장해둔 currentBookId 사용
             BOOK_TITLE: $('#u_book_title').val(),
             AUTHOR: $('#u_author').val(),
             ISBN: $('#u_isbn').val(),
@@ -638,21 +701,29 @@ $(document).ready(function () {
             DESCRIPTION: $('#u_description').val(),
             SUMMARY: $('#u_summary').val(),
             RECOMMENDATION: $('#u_recommendation').val(),
-            TAGS: Array.from($('#u_book_tag option:selected')).map(opt => opt.value).join(',')
+            TAGS: $('#u_book_tag').val().length ? '&' + $('#u_book_tag').val().join('&') + '&' : '',
         };
 
-        // 개발자 추천 정보 수집
-        const devRecommends = [];
-        $('#u_recommenderContainer > div').each(function (index) {
-            const groupIndex = Math.floor(index / 3) + 1;
-            if ($(`#u_devID${groupIndex}`).val()) {
-                devRecommends.push({
-                    DEV_ID: $(`#u_devID${groupIndex}`).val(),
-                    RECOMMEND_REASON: $(`#u_reason${groupIndex}`).val()
+        // 개발자 추천 정보 수집 수정
+        const devContents = [];
+        $('.recommender-group').each(function () {
+            const index = $(this).data('index');
+            const devId = $(`#u_devID${index}`).val();
+            const reason = $(`#u_reason${index}`).val();
+
+            if (devId && reason) {
+                devContents.push({
+                    DEV_ID: devId,
+                    BOOK_ID: currentBookId,  // selectedData 대신 currentBookId 사용
+                    DEV_RECOMMEND_REASON: reason
                 });
             }
         });
-
+        // 데이터 유효성 검사 추가
+        if (devContents.length === 0) {
+            alert('최소 한 명 이상의 추천 프로그래머를 입력해주세요!!!');
+            return;
+        }
         // 서버로 전송
         $.ajax({
             url: '/admin/book/update',
@@ -660,15 +731,17 @@ $(document).ready(function () {
             contentType: 'application/json',
             data: JSON.stringify({
                 book: bookData,
-                devRecommends: devRecommends
+                DEV_CONTENTS: devContents
             }),
+
             success: function (response) {
-                alert('도서가 성공적으로 수정되었습니다');
+                console.log("data", response);
+                alert('도서가 성공적으로 수정되었습니다!!!');
                 $('#book-update').modal('hide');
                 location.reload();
             },
             error: function (error) {
-                alert('도서 수정에 실패했습니다');
+                alert('도서 수정에 실패했습니다!!!');
                 console.error('에러:', error);
             }
         });
@@ -678,7 +751,13 @@ $(document).ready(function () {
     $('#book-update').on('hidden.bs.modal', function () {
         $(this).find('input, textarea, select').val('');
         selectedData = null;
+        currentBookId = null;  // 전역 변수도 초기화
         location.reload();
+    });
+
+    // 삭제 버튼 이벤트 핸들러 (기존 데이터용)
+    $(document).on('click', '.remove-recommender', function () {
+        $(this).closest('.recommender-group').remove();
     });
 });
 

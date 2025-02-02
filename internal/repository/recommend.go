@@ -163,7 +163,7 @@ func (m *CommonRepo) GetDevRecommendedBooks(devID string) []model.DevBookLikeRea
 		B.COVER_URL,
 		C.PROFILE_IMAGE_PATH
 	FROM dbp.dev_recommends A
-	INNER JOIN dbp.BOOK _INFOS B ON A.BOOK_ID = B.BOOK_ID 
+	INNER JOIN dbp.book_infos B ON A.BOOK_ID = B.BOOK_ID
 	INNER JOIN dbp.dev_infos C ON A.DEV_ID = C.ID
 	WHERE A.DEL_YN = 0 AND A.DEV_ID = ?`, devID)
 
@@ -171,17 +171,24 @@ func (m *CommonRepo) GetDevRecommendedBooks(devID string) []model.DevBookLikeRea
 		log.Println(err)
 		return []model.DevBookLikeReason{}
 	}
+	defer rows.Close()
 
 	var books []model.DevBookLikeReason
 	for rows.Next() {
 		var book model.DevBookLikeReason
-		err = rows.Scan(&book.DevReasonID, &book.DevReason,
-			&book.BookID, &book.BookTitle, &book.CoverURL, &book.ProfileImagePath)
+		err = rows.Scan(
+			&book.DevReasonID,
+			&book.DevReason,
+			&book.BookID,
+			&book.BookTitle,
+			&book.CoverURL,
+			&book.ProfileImagePath,
+		)
 		if err != nil {
 			log.Println("책 정보 스캔 중 오류:", err)
 			continue
 		}
-		book.ProfileImagePath = "/storage/image/dev/" + book.ProfileImagePath
+		book.ProfileImagePath = os.Getenv("SELECT_PROFILE_PATH") + "/" + book.ProfileImagePath
 		books = append(books, book)
 	}
 	return books

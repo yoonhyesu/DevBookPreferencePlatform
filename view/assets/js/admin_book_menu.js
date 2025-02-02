@@ -4,7 +4,7 @@ import { selectedData } from '/assets/js/admin_grid.js';
 // 도서 관리페이지
 $(document).ready(function () {
 
-    // 도서 태그 값 불러오기
+    // (도서등록시)도서 태그 값 불러오기
     let multipleSelect = new Choices('#bookTag', {
         removeItemButton: true,
         searchEnabled: true,
@@ -244,23 +244,31 @@ $(document).ready(function () {
 
     // 추천 프로그래머 추가 버튼 이벤트
     $('#add-recommender').click(function () {
-        const index = ($('#recommenderContainer').children().length / 3) + 1;
+        const index = ($('#recommenderContainer').children().length / 3) + 2;  // 첫번째 기본 필드가 있으므로 +2
+        if (index > 5) {  // 최대 5명까지만 추가 가능하도록 제한
+            alert('추천 프로그래머는 최대 5명까지만 등록 가능합니다!!!');
+            return;
+        }
+
         $('#recommenderContainer').append(`
-            <div class="col-12 mb-3">
-                <label for="devID${index}" class="form-label required">추천 프로그래머ID</label>
-                <div class="input-group">
-                    <input type="text" class="form-control" id="devID${index}" name="devID${index}" readonly required>
-                    <button class="btn btn-outline-primary checkDevId" type="button" id="checkDevId${index}"
-                        data-toggle="modal" data-target="#dev-search-modal">검색</button>
+            <div class="recommender-group" data-index="${index}">
+                <div class="col-12 mb-3">
+                    <label for="devID${index}" class="form-label required">추천 프로그래머ID</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="devID${index}" name="devID${index}" readonly required>
+                        <button class="btn btn-outline-primary checkDevId" type="button" id="checkDevId${index}"
+                            data-toggle="modal" data-target="#dev-search-modal">검색</button>
+                        <button class="btn btn-outline-danger remove-recommender" type="button">삭제</button>
+                    </div>
                 </div>
-            </div>
-            <div class="col-12 mb-3">
-                <label for="name${index}" class="form-label required">추천 프로그래머명</label>
-                <input type="text" class="form-control" id="name${index}" name="name${index}" readonly required>
-            </div>
-            <div class="col-12 mb-3">
-                <label for="reason${index}" class="form-label required">프로그래머 추천이유</label>
-                <textarea class="form-control" id="reason${index}" name="reason${index}" rows="3" required></textarea>
+                <div class="col-12 mb-3">
+                    <label for="name${index}" class="form-label required">추천 프로그래머명</label>
+                    <input type="text" class="form-control" id="name${index}" name="name${index}" readonly required>
+                </div>
+                <div class="col-12 mb-3">
+                    <label for="reason${index}" class="form-label required">프로그래머 추천이유</label>
+                    <textarea class="form-control" id="reason${index}" name="reason${index}" rows="3" required></textarea>
+                </div>
             </div>
         `);
 
@@ -271,13 +279,11 @@ $(document).ready(function () {
             const searchModal = new bootstrap.Modal(document.getElementById('dev-search-modal'));
             searchModal.show();
         });
-    });
 
-    // 추천 프로그래머 삭제 버튼 이벤트
-    $('#del-recommender').click(function () {
-        $('#recommenderContainer').children().last().remove();
-        $('#recommenderContainer').children().last().remove();
-        $('#recommenderContainer').children().last().remove();
+        // 삭제 버튼 이벤트 핸들러
+        $('.remove-recommender').on('click', function () {
+            $(this).closest('.recommender-group').remove();
+        });
     });
 
     // 프로그래머 검색 버튼 클릭 이벤트

@@ -272,17 +272,20 @@ func (a *AdminHandler) AddBook(c *gin.Context) {
 
 // 책 수정 API
 func (a *AdminHandler) UpdateBook(c *gin.Context) {
-	var req struct {
-		Book          model.AddBooks       `json:"book"`
-		DevRecommends []model.DevRecommend `json:"devRecommends"`
-	}
+	var req BookAddRequest
+
+	// 요청 바디 로깅 추가 (AddBook과 동일하게)
+	body, _ := ioutil.ReadAll(c.Request.Body)
+	c.Request.Body = ioutil.NopCloser(bytes.NewBuffer(body))
+	log.Printf("받은 요청 바디: %s", string(body))
 
 	if err := c.ShouldBindJSON(&req); err != nil {
+		log.Printf("JSON 바인딩 오류: %v", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	if err := a.repo.UpdateBook(req.Book, req.DevRecommends); err != nil {
+	if err := a.repo.UpdateBook(req.Book, req.DevContents); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}

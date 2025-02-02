@@ -49,6 +49,7 @@ type AddDevs struct {
 
 type DevRecommend struct {
 	DevID           string `json:"DEV_ID"`
-	RecommendReason string `json:"DEV_RECOMMEND_REASON"`
 	DevName         string `json:"DEV_NAME"`
+	RecommendReason string `json:"DEV_RECOMMEND_REASON"`
+	BookID          int    `json:"BOOK_ID"`
 }

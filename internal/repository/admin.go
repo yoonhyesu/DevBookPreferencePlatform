@@ -260,11 +260,18 @@ func (m *CommonRepo) GetBookList() []model.AddBooks {
 		var devRecommends []model.DevRecommend
 		for devRows.Next() {
 			var dev model.DevRecommend
-			err := devRows.Scan(&dev.DevID, &dev.DevName, &dev.RecommendReason)
+			var devName string
+			err := devRows.Scan(
+				&dev.DevID,
+				&devName, // dev_infos 테이블의 DEV_NAME을 가져옴
+				&dev.RecommendReason,
+			)
 			if err != nil {
 				log.Printf("개발자 추천 데이터 스캔 오류: %v", err)
 				continue
 			}
+			dev.DevName = devName    // DevName 필드에 할당
+			dev.BookID = book.BookID // 외부 쿼리에서 가져온 BookID 사용
 			devRecommends = append(devRecommends, dev)
 		}
 		book.DevRecommends = devRecommends
