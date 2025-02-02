@@ -131,8 +131,8 @@ func (a *AdminHandler) UpdateDevs(c *gin.Context) {
 		ext := filepath.Ext(file.Filename)
 		newFileName := uuid.New().String() + ext
 
-		// DB에는 파일명만 저장 (앞에 / 포함)
-		dev.ProfileImagePath = "/" + newFileName
+		// DB에는 파일명만 저장
+		dev.ProfileImagePath = newFileName
 
 		// 실제 파일 저장 (개발자 프로필 디렉토리에)
 		uploadPath := filepath.Join(getDevImagePath(), newFileName)
