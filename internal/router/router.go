@@ -39,12 +39,6 @@ func SetupRouter(g *gin.Engine, db *database.MariaDBHandler, redis *database.Red
 	g.StaticFile("/favicon.ico", "../favicon.ico")
 
 	// 도커 볼륨에 마운트된 스토리지 경로 설정
-	//profilePath := filepath.Join("../storage/image/profile") // 유저 프로필용
-	//devPath := filepath.Join("../storage/image/dev")         // 개발자 프로필용
-	// g.Static("/uploads", uploadPath)
-	//g.Static("/storage/image/profile", profilePath) // 유저 프로필 접근 URL
-	//g.Static("/storage/image/dev", devPath)         // 개발자 프로필 접근 URL
-
 	// docker와 테스트 서버 같이..
 	profilePath := os.Getenv("PROFILE_PATH")
 	devPath := os.Getenv("DEV_PATH")
@@ -149,8 +143,10 @@ func SetupRouter(g *gin.Engine, db *database.MariaDBHandler, redis *database.Red
 			{
 				dev.GET("", func(c *gin.Context) {
 					user := c.MustGet("user")
+					ProfilePath := os.Getenv("SELECT_DEV_PATH")
 					c.HTML(http.StatusOK, "devs_manager.html", gin.H{
-						"user": user,
+						"user":        user,
+						"ProfilePath": ProfilePath,
 					})
 				})
 				dev.GET("/manage", adminHandler.GetDevList)

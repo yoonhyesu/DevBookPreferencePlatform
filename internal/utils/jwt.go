@@ -56,31 +56,38 @@ func GenerateTokens(userID, email string, isAdmin bool, userName string) (*Token
 }
 
 func ValidateToken(tokenString string) (jwt.MapClaims, error) {
+	// 1. 토큰 파싱
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		// 1-1. 서명 방식 검증 (HMAC 방식인지 확인)
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
+		// 1-2. 시크릿 키 반환
 		return []byte(os.Getenv("JWT_SECRET_KEY")), nil
 	})
 
+	// 2. 파싱 에러 체크
 	if err != nil {
 		return nil, err
 	}
 
+	// 3. Claims(토큰에 담긴 정보) 추출 및 유효성 검증
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok || !token.Valid {
 		return nil, fmt.Errorf("invalid token")
 	}
 
-	// 토큰 만료 시간 검증
+	// 4. 토큰 만료 시간 검증
 	exp, ok := claims["exp"].(float64)
 	if !ok {
 		return nil, fmt.Errorf("invalid token expiration")
 	}
 
+	// 5. 현재 시간과 만료 시간 비교
 	if float64(time.Now().Unix()) > exp {
 		return nil, fmt.Errorf("token has expired")
 	}
 
+	// 6. 유효한 토큰이면 claims 반환
 	return claims, nil
 }

@@ -315,6 +315,15 @@ $(document).ready(function () {
             return;
         }
 
+        $.ajax({
+            url: '/admin/dev/manage',
+            method: 'GET',
+            contentType: 'application/json',
+            success: function (response) {
+                console.log("개발자 정보:", response);
+            }
+        });
+
         // 데이터 바인딩
         $('#u_dev_name').val(selectedData.DEV_NAME);
         $('#u_dev_detail_name').val(selectedData.DEV_DETAIL_NAME);
@@ -325,10 +334,11 @@ $(document).ready(function () {
         if (selectedData.PROFILE_IMAGE_PATH) {
             // DB에 저장된 경로에서 파일명만 추출
             const fileName = selectedData.PROFILE_IMAGE_PATH.split('/').pop();
-            const imagePath = '/storage/image/dev/' + fileName;
+            // 환경변수로 가져오기
+            const imagePath = ProfilePath + "/" + fileName;
+            console.log("dd", ProfilePath)
             $('#update-profile-img').attr('src', imagePath);
         }
-
         // Bootstrap 5 방식으로 모달 표시
         const updateModal = new bootstrap.Modal(document.getElementById('dev-update'));
         updateModal.show();
@@ -371,10 +381,6 @@ $(document).ready(function () {
             data: formData,
             success: function (response) {
                 console.log('서버응답:', response);
-                if (response.PROFILE_IMAGE_PATH) {
-                    const imagePath = '/storage/image/dev' + response.PROFILE_IMAGE_PATH;
-                    $('#update-profile-img').attr('src', imagePath);
-                }
                 alert("개발자 수정에 성공했습니다");
                 $('#dev-update').modal('hide');
                 location.reload();
