@@ -41,6 +41,11 @@ type BookInfo struct {
 	EbookYN        string `json:"EBOOK_YN"`
 }
 
+// 목차정보
+type BookContents struct {
+	ContentsList string `json:"CONTENTS_LIST"`
+}
+
 // 책을 추천한 개발자정보
 type DevInfo struct {
 	DevID            string `json:"ID"`

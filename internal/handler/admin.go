@@ -36,7 +36,6 @@ func (a *AdminHandler) GetDevList(c *gin.Context) {
 // 개발자 프로필 이미지 환경변수 가져오기
 func getDevImagePath() string {
 	return os.Getenv("DEV_PATH")
-
 }
 
 // 개발자 등록 API
@@ -245,6 +244,18 @@ func (a *AdminHandler) GetBookList(c *gin.Context) {
 type BookAddRequest struct {
 	Book        model.AddBooks       `json:"book"`
 	DevContents []model.DevRecommend `json:"DEV_CONTENTS"`
+}
+
+// 책 목차 정리 API
+func (a *AdminHandler) TransformContents(c *gin.Context) {
+	// js로 받아와야함
+	var contents string
+	if err := c.ShouldBindJSON(&contents); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	//contentsService := a.ragService.TransformBookContents()
+
 }
 
 // 책 등록 API

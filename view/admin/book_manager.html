@@ -261,8 +261,14 @@
                             <div class="row mb-4">
                                 <div class="col-12 mb-3">
                                     <label for="bookTbCntUrl" class="form-label required">목차</label>
-                                    <textarea class="form-control" id="bookTbCntUrl" name="CONTENTS_LIST"
-                                        rows="3"></textarea>
+                                    <div class="d-flex flex-column">
+                                        <textarea class="form-control mb-2" id="bookTbCntUrl" name="CONTENTS_LIST"
+                                            rows="3"></textarea>
+                                        <button type="button" class="btn btn-outline-primary align-self-end"
+                                            onclick="formatTableOfContents()">
+                                            목차 형식 변환
+                                        </button>
+                                    </div>
                                 </div>
                                 <div class="col-12 mb-3">
                                     <label for="bookIntroductionUrl" class="form-label required">책소개</label>
@@ -402,8 +408,14 @@
                             <div class="row mb-4">
                                 <div class="col-12 mb-3">
                                     <label for="u_contents_list" class="form-label required">목차</label>
-                                    <textarea class="form-control" id="u_contents_list" name="CONTENTS_LIST"
-                                        rows="3"></textarea>
+                                    <div class="d-flex flex-column">
+                                        <textarea class="form-control mb-2" id="u_contents_list" name="CONTENTS_LIST"
+                                            rows="3"></textarea>
+                                        <button type="button" class="btn btn-outline-primary align-self-end"
+                                            onclick="formatTableOfContents_update()">
+                                            목차 형식 변환
+                                        </button>
+                                    </div>
                                 </div>
                                 <div class="col-12 mb-3">
                                     <label for="u_description" class="form-label required">책소개</label>

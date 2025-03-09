@@ -1,4 +1,4 @@
-package service
+package service // gemini응답용(홈화면신간책 호출)
 
 import (
 	pkg "DBP/pkg/database"
@@ -99,6 +99,12 @@ func init() {
 	defaultPath := filepath.Join("..", "config")
 	flag.StringVar(&configPath, "config", defaultPath, "설정 파일 경로")
 	flag.Parse()
+}
+
+// 목차 정리 서비스 - > 인공지능 호출
+func TransformBookContents(contents string) string {
+	// 데이터를 받아서
+	return ""
 }
 
 // IT 키워드 경로 탐색 및 로드

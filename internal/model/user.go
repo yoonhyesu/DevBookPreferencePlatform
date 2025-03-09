@@ -14,6 +14,7 @@ type User struct {
 	IsAdmin          bool   `json:"IS_ADMIN"`
 	ProfileImagePath string `json:"PROFILE_IMAGE_PATH"`
 	ProfileImageName string `json:"PROFILE_IMAGE_NAME"`
+	LikeBookList     string `json:"LIKE_BOOK_LIST"`
 }
 
 // 회원가입용

@@ -94,6 +94,7 @@ func (h *ChatHandler) HandleWebSocket(c *gin.Context) {
 // GetChatMessages 채팅 메시지 조회
 func (h *ChatHandler) GetChatMessages(c *gin.Context) {
 	bookID, err := strconv.Atoi(c.Param("bookId"))
+	log.Println("책ID", bookID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "잘못된 책 ID입니다"})
 		return

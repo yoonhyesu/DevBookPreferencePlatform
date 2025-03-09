@@ -29,16 +29,17 @@ func AdminMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		// IsAdmin 필드 확인
+		//#TODO : 리디렉트
+		// IsAdmin 필드 확인 -> 액세스토큰 만료시킴
 		isAdmin, exists := userData["IsAdmin"]
 		if !exists || !isAdmin.(bool) {
 			c.JSON(http.StatusForbidden, gin.H{
-				"error": "관리자 권한이 필요합니다",
+				"error":    "관리자 권한이 필요합니다",
+				"redirect": "/index.html",
 			})
 			c.Abort()
 			return
 		}
-
 		// 관리자 권한이 확인되면 다음 핸들러로 진행
 		c.Next()
 	}

@@ -136,15 +136,18 @@
                         {{ else if eq .Grade "advanced" }}고급
                         {{ end }}
                     </h5>
-                    <div class="row g-4">
+                    <div class="row g-3 row-gap-5 mt-3 mb-3">
                         {{ range .StepWithBook }}
                         <div class="col-6 col-sm-4 col-md-3 col-xl-2">
                             <div class="book-item text-center">
                                 <a href="/category/book/detail/{{ .BookID }}">
-                                    <img src="{{ .CoverURL }}" width="200" height="250" class="bd-placeholder-img"
+                                    <img src="{{ .CoverURL }}" width="180" height="220" class="bd-placeholder-img"
                                         alt="{{ .BookTitle }}">
+                                    <label class="text-center w-100 mt-3"
+                                        style="word-break: keep-all; display: block; line-height: 1.4;">{{.BookTitle}}</label>
                                 </a>
                             </div>
+
                         </div>
                         {{ end }}
                     </div>

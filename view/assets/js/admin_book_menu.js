@@ -1,6 +1,74 @@
 import { Tabulator } from '/assets/js/admin_grid.js';
 import { selectedData } from '/assets/js/admin_grid.js';
 
+// 함수를 document.ready 밖으로 이동
+function formatTableOfContents() {
+    const textarea = document.getElementById('bookTbCntUrl');
+    const content = textarea.value;
+
+    // 줄 단위로 처리
+    const lines = content.split(/\r?\n/); // \r\n 또는 \n 모두 처리
+    let result = '';
+
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+
+        // 빈 줄 처리
+        if (line === '') {
+            result += '<br>';
+            continue;
+        }
+
+        // 1. 특정 구분자 처리 ('_', '__', '____' 등)
+        if (line.includes('_')) {
+            result += line.replace(/_{2,}/g, '<br>') + '<br>';
+        }
+        // 2. 숫자 + 점으로 시작하는 목차 항목 (예: "1.", "1.1.", "1.1.1.")
+        else if (/^\d+(\.\d+)*\.?\s/.test(line)) {
+            // 이전 줄이 빈 줄이 아니면 <br> 추가
+            if (i > 0 && lines[i - 1].trim() !== '') {
+                result += '<br>';
+            }
+            result += line + '<br>';
+        }
+        // 3. "Part", "Chapter", "부", "장" 등으로 시작하는 줄
+        else if (/^(Part|Chapter|[0-9]+부|[0-9]+장)/i.test(line)) {
+            // 이전 줄이 빈 줄이 아니면 <br> 추가
+            if (i > 0 && lines[i - 1].trim() !== '') {
+                result += '<br>';
+            }
+            result += '<strong>' + line + '</strong><br>';
+        }
+        // 4. 로마 숫자로 시작하는 경우 (I., II., III. 등)
+        else if (/^(I{1,3}|IV|V|VI{1,3}|IX|X)\.?\s/.test(line)) {
+            // 이전 줄이 빈 줄이 아니면 <br> 추가
+            if (i > 0 && lines[i - 1].trim() !== '') {
+                result += '<br>';
+            }
+            result += line + '<br>';
+        }
+        // 5. 알파벳 + 점으로 시작하는 경우 (A., a., B., b. 등)
+        else if (/^[A-Za-z]\.?\s/.test(line)) {
+            // 이전 줄이 빈 줄이 아니면 <br> 추가
+            if (i > 0 && lines[i - 1].trim() !== '') {
+                result += '<br>';
+            }
+            result += line + '<br>';
+        }
+        // 6. else 조건 - 위의 모든 조건에 해당하지 않는 경우
+        else {
+            result += line;
+        }
+    }
+
+    // 결과 반영
+    textarea.value = result;
+    console.log("목차 형식 변환 완료 (등록 모달)");
+}
+
+// 전역 스코프에 함수 노출 (HTML에서 직접 호출할 수 있도록)
+window.formatTableOfContents = formatTableOfContents;
+
 // 도서 관리페이지
 $(document).ready(function () {
 
@@ -78,9 +146,10 @@ $(document).ready(function () {
             const bookHtml = `
             <div class="col-12 col-sm-6 col-lg-4 d-flex align-items-center justify-content-center flex-column">
                 <img src="${book.TITLE_URL || '/assets/images/no-image.jpg'}" 
-                     width="200" height="250" 
+                     width="180" height="210" 
                      class="bd-placeholder-img border" 
                      alt="${book.TITLE}">
+                     <label class="text-center w-100 mt-3" style="word-break: keep-all; display: block; line-height: 1.4;" >${book.TITLE}</label>
                 <div class="mt-2">
                     <input class="form-check-input" 
                            type="radio" 
@@ -137,6 +206,103 @@ $(document).ready(function () {
             alert('도서 데이터 처리 중 오류가 발생했습니다');
         }
     });
+
+    // 함수를 document.ready 밖으로 이동
+    function formatTableOfContents() {
+        const textarea = document.getElementById('bookTbCntUrl');
+        if (!textarea) {
+            console.error("목차 텍스트 영역을 찾을 수 없습니다.");
+            return;
+        }
+
+        const content = textarea.value;
+        if (!content) {
+            console.log("변환할 내용이 없습니다.");
+            return;
+        }
+
+        // 줄 단위로 처리
+        const lines = content.split(/\r?\n/); // \r\n 또는 \n 모두 처리
+        let result = '';
+
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i].trim();
+
+            // 빈 줄 처리
+            if (line === '') {
+                result += '<br>';
+                continue;
+            }
+
+            // 1. 특정 구분자 처리 ('_', '__', '____' 등)
+            if (line.includes('_')) {
+                result += line.replace(/_{2,}/g, '<br>') + '<br>';
+            }
+            // 2. 대괄호로 시작하는 경우 (예: [0단계 Go 언어를 배우기 전에])
+            else if (/^\[.*\]/.test(line)) {
+                // 이전 줄이 빈 줄이 아니면 <br> 추가
+                if (i > 0 && lines[i - 1].trim() !== '') {
+                    result += '<br>';
+                }
+                result += '<strong>' + line + '</strong><br>';
+            }
+            // 3. 숫자 + "장"으로 시작하는 경우 (예: 00장, 01장)
+            else if (/^\d+장/.test(line)) {
+                // 이전 줄이 빈 줄이 아니면 <br> 추가
+                if (i > 0 && lines[i - 1].trim() !== '') {
+                    result += '<br>';
+                }
+                result += '<strong>' + line + '</strong><br>';
+            }
+            // 4. 숫자 + 점으로 시작하는 목차 항목 (예: "1.", "1.1.", "1.1.1.")
+            else if (/^\d+(\.\d+)*\.?\s/.test(line)) {
+                // 이전 줄이 빈 줄이 아니면 <br> 추가
+                if (i > 0 && lines[i - 1].trim() !== '') {
+                    result += '<br>';
+                }
+                result += line + '<br>';
+            }
+            // 5. "Part", "Chapter", "부", "장" 등으로 시작하는 줄
+            else if (/^(Part|Chapter|[0-9]+부|[0-9]+장)/i.test(line)) {
+                // 이전 줄이 빈 줄이 아니면 <br> 추가
+                if (i > 0 && lines[i - 1].trim() !== '') {
+                    result += '<br>';
+                }
+                result += '<strong>' + line + '</strong><br>';
+            }
+            // 6. 로마 숫자로 시작하는 경우 (I., II., III. 등)
+            else if (/^(I{1,3}|IV|V|VI{1,3}|IX|X)\.?\s/.test(line)) {
+                // 이전 줄이 빈 줄이 아니면 <br> 추가
+                if (i > 0 && lines[i - 1].trim() !== '') {
+                    result += '<br>';
+                }
+                result += line + '<br>';
+            }
+            // 7. 알파벳 + 점으로 시작하는 경우 (A., a., B., b. 등)
+            else if (/^[A-Za-z]\.?\s/.test(line)) {
+                // 이전 줄이 빈 줄이 아니면 <br> 추가
+                if (i > 0 && lines[i - 1].trim() !== '') {
+                    result += '<br>';
+                }
+                result += line + '<br>';
+            }
+            // 8. 언더스코어로 시작하는 경우 (예: _1.1, _2.1)
+            else if (/^_\d+\.\d+/.test(line)) {
+                // 이전 줄이 빈 줄이 아니면 <br> 추가
+                if (i > 0 && lines[i - 1].trim() !== '') {
+                    result += '<br>';
+                }
+                result += line + '<br>';
+            }
+            // 9. else 조건 - 위의 모든 조건에 해당하지 않는 경우
+            else {
+                result += line + '<br>';
+            }
+        }
+
+        // 결과 반영
+        textarea.value = result;
+    }
 
     // 선택된 도서 데이터 베이스 전송
     $('#sendBookData').click(function () {

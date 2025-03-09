@@ -20,10 +20,16 @@ type Repository interface {
 	GetTagList() []model.TagList
 	GetTagWithBookList(tagID int) []model.TagWithBook
 	GetBookDetail(bookID int) []model.BookInfo
+	GetBookContentsList(bookID int) string
 	GetRecommendDevList() []model.DevInfo
 	GetDevInfo(devID string) []model.DevDetail
 	GetDevRecommendedBooks(devID string) []model.DevBookLikeReason
 	GetStepWithBook(step string) []model.BookInfo
+
+	// 책 좋아요 관련 기능
+	CheckBookLiked(userID, bookID string) bool
+	UpdateBookLike(userID, bookID string, liked bool) error
+	GetLikedBooks(userID string) []model.BookInfo
 
 	// 관리자(개발자관리)
 	GetDevList() []model.AddDevs

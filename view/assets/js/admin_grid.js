@@ -43,6 +43,108 @@ function getImageUrl(path) {
     return path.replace(/\\/g, '/').split('/').map(encodeURIComponent).join('/');
 }
 
+// 함수를 document.ready 밖으로 이동
+function formatTableOfContents_update() {
+    console.log("목차 형식 변환 버튼 클릭");
+    const textarea = document.getElementById('u_contents_list');
+    if (!textarea) {
+        console.error("목차 텍스트 영역을 찾을 수 없습니다.");
+        return;
+    }
+
+    const content = textarea.value;
+    if (!content) {
+        console.log("변환할 내용이 없습니다.");
+        return;
+    }
+
+    // 줄 단위로 처리
+    const lines = content.split(/\r?\n/); // \r\n 또는 \n 모두 처리
+    let result = '';
+
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+
+        // 빈 줄 처리
+        if (line === '') {
+            result += '<br>';
+            continue;
+        }
+
+        // 1. 특정 구분자 처리 ('_', '__', '____' 등)
+        if (line.includes('_')) {
+            result += line.replace(/_{2,}/g, '<br>') + '<br>';
+        }
+        // 2. 대괄호로 시작하는 경우 (예: [0단계 Go 언어를 배우기 전에])
+        else if (/^\[.*\]/.test(line)) {
+            // 이전 줄이 빈 줄이 아니면 <br> 추가
+            if (i > 0 && lines[i - 1].trim() !== '') {
+                result += '<br>';
+            }
+            result += '<strong>' + line + '</strong><br>';
+        }
+        // 3. 숫자 + "장"으로 시작하는 경우 (예: 00장, 01장)
+        else if (/^\d+장/.test(line)) {
+            // 이전 줄이 빈 줄이 아니면 <br> 추가
+            if (i > 0 && lines[i - 1].trim() !== '') {
+                result += '<br>';
+            }
+            result += '<strong>' + line + '</strong><br>';
+        }
+        // 4. 숫자 + 점으로 시작하는 목차 항목 (예: "1.", "1.1.", "1.1.1.")
+        else if (/^\d+(\.\d+)*\.?\s/.test(line)) {
+            // 이전 줄이 빈 줄이 아니면 <br> 추가
+            if (i > 0 && lines[i - 1].trim() !== '') {
+                result += '<br>';
+            }
+            result += line + '<br>';
+        }
+        // 5. "Part", "Chapter", "부", "장" 등으로 시작하는 줄
+        else if (/^(Part|Chapter|[0-9]+부|[0-9]+장)/i.test(line)) {
+            // 이전 줄이 빈 줄이 아니면 <br> 추가
+            if (i > 0 && lines[i - 1].trim() !== '') {
+                result += '<br>';
+            }
+            result += '<strong>' + line + '</strong><br>';
+        }
+        // 6. 로마 숫자로 시작하는 경우 (I., II., III. 등)
+        else if (/^(I{1,3}|IV|V|VI{1,3}|IX|X)\.?\s/.test(line)) {
+            // 이전 줄이 빈 줄이 아니면 <br> 추가
+            if (i > 0 && lines[i - 1].trim() !== '') {
+                result += '<br>';
+            }
+            result += line + '<br>';
+        }
+        // 7. 알파벳 + 점으로 시작하는 경우 (A., a., B., b. 등)
+        else if (/^[A-Za-z]\.?\s/.test(line)) {
+            // 이전 줄이 빈 줄이 아니면 <br> 추가
+            if (i > 0 && lines[i - 1].trim() !== '') {
+                result += '<br>';
+            }
+            result += line + '<br>';
+        }
+        // 8. 언더스코어로 시작하는 경우 (예: _1.1, _2.1)
+        else if (/^_\d+\.\d+/.test(line)) {
+            // 이전 줄이 빈 줄이 아니면 <br> 추가
+            if (i > 0 && lines[i - 1].trim() !== '') {
+                result += '<br>';
+            }
+            result += line + '<br>';
+        }
+        // 9. else 조건 - 위의 모든 조건에 해당하지 않는 경우
+        else {
+            result += line + '<br>';
+        }
+    }
+
+    // 결과 반영
+    textarea.value = result;
+    console.log("목차 형식 변환 완료 (수정 모달)");
+}
+
+// 전역 스코프에 함수 노출 (HTML에서 직접 호출할 수 있도록)
+window.formatTableOfContents_update = formatTableOfContents_update;
+
 $(document).ready(function () {
     let admin_notice_table, admin_book_table, admin_dev_table;
 
@@ -764,6 +866,12 @@ $(document).ready(function () {
     // 삭제 버튼 이벤트 핸들러 (기존 데이터용)
     $(document).on('click', '.remove-recommender', function () {
         $(this).closest('.recommender-group').remove();
+    });
+
+    // 목차 형식 변환 버튼에 이벤트 리스너 추가
+    $(document).on('click', '#format-toc-btn-update', function () {
+        formatTableOfContents_update();
+        console.log("목차 형식 변환 버튼 클릭");
     });
 });
 

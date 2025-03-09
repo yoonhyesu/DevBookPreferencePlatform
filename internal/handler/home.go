@@ -22,7 +22,6 @@ func NewHomeHandler(repo repository.Repository, ragService *service.RagServer) *
 	}
 }
 
-// 공지사항 조회
 // 리시버 사용 "이 기능은 이 로봇이 수행할 수 있는 동작 가리킴"
 func (h *HomeHandler) GetHomeData(c *gin.Context) {
 	notices := h.repo.GetNotice()

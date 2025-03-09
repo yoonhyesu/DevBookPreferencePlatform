@@ -55,7 +55,7 @@ func SetupRouter(g *gin.Engine, db *database.MariaDBHandler, redis *database.Red
 	// 모든 요청에 대해 인증 미들웨어 적용
 	g.Use(middleware.AuthMiddleware())
 
-	// 공통 repository 생성
+	// 레포지토리 초기화
 	repo := repository.NewRepository(db, redis)
 
 	// 웹 핸들러 정의
@@ -71,7 +71,6 @@ func SetupRouter(g *gin.Engine, db *database.MariaDBHandler, redis *database.Red
 	bookdetail := handler.NewBookHandler(repo)
 	// 관리자 메뉴 (추천책등록, 개발자등록, 공지사항등록)
 	adminHandler := handler.NewAdminHandler(repo)
-
 	// 채팅 서버 및 핸들러 초기화
 	chatServer := chat.NewChatServer(db, redis)
 	chatHandler := handler.NewChatHandler(chatServer)
@@ -103,6 +102,7 @@ func SetupRouter(g *gin.Engine, db *database.MariaDBHandler, redis *database.Red
 		public.GET("/category/dev/:devID", recommend.GetDevWithBooksHandler)
 		public.GET("/category/step/:stepName", recommend.GetStepWithBookHandler)
 		public.GET("/category/book/detail/:BookID", bookdetail.GetBookDetail)
+		public.GET("/book/contents/:BookID", bookdetail.GetBookContentsList)
 	}
 
 	// 인증이 필요한 private 라우트
@@ -112,6 +112,10 @@ func SetupRouter(g *gin.Engine, db *database.MariaDBHandler, redis *database.Red
 		// 로그아웃
 		private.POST("/auth/signout", userHandler.SignOut)
 		private.POST("/logout", userHandler.SignOut)
+
+		// 책 좋아요 관련 API
+		private.GET("/api/books/like/status", bookdetail.GetLikeStatus)
+		private.POST("/api/books/like", bookdetail.ToggleLike)
 
 		// 책챗리뷰채팅 관련 라우트
 		private.GET("/ws/chat", chatHandler.HandleWebSocket)
@@ -133,6 +137,7 @@ func SetupRouter(g *gin.Engine, db *database.MariaDBHandler, redis *database.Red
 			account.POST("/profile-setting/leave", userHandler.LeavePlattform)
 			account.POST("/profile-setting/changpw", userHandler.ChangePW)
 			account.POST("/check_pw", userHandler.CheckCurrentPassword)
+			account.GET("/like-book", bookdetail.GetLikedBooks)
 		}
 
 		// 관리자 전용 라우트

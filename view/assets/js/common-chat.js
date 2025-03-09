@@ -8,7 +8,7 @@ function formatDate(date) {
   });
 }
 
-function appendMessage(userName, side, text, time) {
+function appendMessage(userName, side, text, time, userId) {
   const chatContainer = document.querySelector('.chat-body');
   if (!chatContainer) {
     console.error('채팅 컨테이너를 찾을 수 없습니다');
@@ -19,7 +19,7 @@ function appendMessage(userName, side, text, time) {
         <div class="msg ${side}-msg">
             <div class="msg-bubble ${side}-bubble">
                 <div class="msg-info">
-                    <div class="msg-info-name">${userId}(${userName})</div>
+                    <div class="msg-info-name">${userName}(${userId})</div>
                     <div class="msg-info-time">${time}</div>
                 </div>
                 <div class="msg-text">${text}</div>
@@ -160,7 +160,7 @@ function initializeChat() {
   ws = connectWebSocket(bookId);
 
   // 이전 메시지 로드
-  loadPreviousMessages();
+  loadPreviousMessages(bookId);
 
   // 메시지 전송 이벤트 리스너
   msgForm.addEventListener('submit', (event) => {
@@ -194,24 +194,28 @@ function initializeChat() {
 }
 
 // 이전 메시지 로드
-function loadPreviousMessages() {
+function loadPreviousMessages(bookId) {
+  console.log('이전 메시지 로드')
+  console.log('메시지도출 bookid', bookId)
   if (!bookId) {
     console.error('책 ID가 없어 이전 메시지를 로드할 수 없습니다');
     return;
   }
-  console.log('bookid', bookId)
   fetch(`/api/chat/messages/${bookId}`)
+
     .then(response => {
+      console.log("응답뭔데", response)
       if (!response.ok) {
-        throw new Error('이전 메시지 로드 실패');
+        throw new Error('이전 메시지 로드 및 응답 실패');
       }
       return response.json();
     })
     .then(messages => {
+      console.log("메시지뭔데", messages)
       if (Array.isArray(messages)) {
         messages.reverse().forEach(msg => {
           const side = msg.USER_ID === currentUserId ? 'right' : 'left';
-          appendMessage(msg.USER_NAME, side, msg.MESSAGE, formatDate(msg.CREATED_AT));
+          appendMessage(msg.USER_NAME, side, msg.MESSAGE, formatDate(msg.CREATED_AT), msg.USER_ID);
         });
       }
     })

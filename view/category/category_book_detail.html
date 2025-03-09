@@ -31,8 +31,8 @@
         <link href="/assets/font/font.css" rel="stylesheet">
         <link href="/assets/styles/index.css" rel="stylesheet">
         <link href="/assets/styles/app.min.css" rel="stylesheet">
-        <link rel="stylesheet" href="/assets/styles/bootstrap-icons.css" />
-
+        <link href="/assets/styles/bootstrap-icons.css" rel="stylesheet">
+        <link href="/assets/styles/bookdetail.css" rel="stylesheet">
     </head>
 
 <body>
@@ -145,8 +145,14 @@
                                         alt="{{.BookDetail.BookTitle}}">
                                 </div>
                                 <div class="col p-4 h-100 d-flex flex-column position-static">
-                                    <h3 class="mb-3" id="book-title" data-book-id="{{.BookDetail.BookID}}">
-                                        {{.BookDetail.BookTitle}}</h3>
+                                    <div class="d-flex align-items-center mb-3">
+                                        <h3 class="mb-0 me-2" id="book-title" data-book-id="{{.BookDetail.BookID}}">
+                                            {{.BookDetail.BookTitle}}</h3>
+                                        <button class="btn like-button" id="likeButton"
+                                            data-book-id="{{.BookDetail.BookID}}">
+                                            <i class="bi bi-heart"></i>
+                                        </button>
+                                    </div>
                                     <div class="mb-1 text-body-secondary" id="book-info"></div>
                                     <p class="card-text mb-auto" id="book-description"></p>
                                     <div class="book-info-container">
@@ -196,7 +202,8 @@
                             <a href="https://search.kyobobook.co.kr/search?keyword={{ .BookDetail.ISBN }}"
                                 target="_blank">
                                 <button
-                                    class="btn btn-light rounded-3 border border-dark-subtle shadow-sm px-4 py-2 hover-scale">
+                                    class="btn btn-light rounded-3 border border-dark-subtle shadow-sm px-4 py-2 hover-scale"
+                                    style="background-color: #ffffff !important;">
                                     <img src="https://contents.kyobobook.co.kr/comm/ink/images/company/2021_renew/kyobo_ci_01.png"
                                         alt="교보문고" style="height: 24px; width: auto;">
                                 </button>
@@ -204,7 +211,8 @@
                             <a href="https://www.aladin.co.kr/search/wsearchresult.aspx?SearchTarget=All&SearchWord={{ .BookDetail.ISBN }}"
                                 target="_blank">
                                 <button
-                                    class="btn btn-light rounded-3 border border-dark-subtle shadow-sm px-4 py-2 hover-scale">
+                                    class="btn btn-light rounded-3 border border-dark-subtle shadow-sm px-4 py-2 hover-scale"
+                                    style="background-color: #ffffff !important;">
                                     <img src="https://image.aladin.co.kr/img/aladdin/ci.gif" alt="알라딘"
                                         style="height: 24px; width: auto;">
                                 </button>
@@ -212,9 +220,10 @@
                             <a href="https://www.yes24.com/Product/Search?domain=ALL&query={{ .BookDetail.ISBN }}"
                                 target="_blank">
                                 <button
-                                    class="btn btn-light rounded-3 border border-dark-subtle shadow-sm px-4 py-2 hover-scale">
-                                    <img src="https://company.yes24.com/assets/yes24/images/etc/fig_CI01.png"
-                                        alt="yes24" style="height: 24px; width: auto;">
+                                    class="btn btn-light rounded-3 border border-dark-subtle shadow-sm px-4 py-2 hover-scale"
+                                    style="background-color: #ffffff !important;">
+                                    <img src="/assets/images/YES24_CI_.jpg" alt="yes24"
+                                        style="height: 24px; width: auto;">
                                 </button>
                             </a>
                         </div>
@@ -244,7 +253,20 @@
                                     <p>{{ .BookDetail.Summary }}</p>
 
                                     <h5 class="fw-semibold mt-5 mb-4">목차</h5>
-                                    <p>{{ .BookDetail.ContentsList }}</p>
+
+                                    <div class="contents-wrapper">
+                                        <div id="contents-list" class="p-3 contents-list content-collapsed">
+                                            <!-- 여기에 Ajax로 받아온 목차가 들어갑니다 -->
+                                        </div>
+                                        <div class="toggle-button-wrapper text-center mt-2">
+                                            <button class="btn btn-light btn-sm toggle-contents">
+                                                <span class="expand-text">펼쳐보기</span>
+                                                <span class="collapse-text" style="display:none;">접어보기</span>
+                                                <i class="bi bi-chevron-down expand-icon"></i>
+                                                <i class="bi bi-chevron-up collapse-icon" style="display:none;"></i>
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                             <div class="tab-pane fade" id="book-review-pane" role="tabpanel"
