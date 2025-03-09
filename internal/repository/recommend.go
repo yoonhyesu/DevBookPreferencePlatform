@@ -8,9 +8,9 @@ import (
 	"strings"
 )
 
-// 태그 조회
+// 태그 조회 (가나다순 정렬)
 func (m *CommonRepo) GetTagList() []model.TagList {
-	rows, err := m.mariaDB.Connection.Query("SELECT TAG_ID, TAG_NAME, DEL_YN FROM TAGS WHERE DEL_YN = FALSE")
+	rows, err := m.mariaDB.Connection.Query("SELECT TAG_ID, TAG_NAME, DEL_YN FROM TAGS WHERE DEL_YN = FALSE ORDER BY TAG_NAME ASC")
 	if err != nil {
 		log.Println(err)
 		return []model.TagList{}
@@ -199,7 +199,7 @@ func (m *CommonRepo) GetStepWithBook(step string) []model.BookInfo {
 	rows, err := m.mariaDB.Connection.Query(`
 SELECT BOOK_ID, BOOK_TITLE, COVER_URL, GRADE, DEL_YN
 FROM dbp.book_infos
-WHERE GRADE = ?
+WHERE GRADE = ? AND DEL_YN = FALSE
 	`, step)
 	if err != nil {
 		log.Println(err)

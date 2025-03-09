@@ -104,57 +104,16 @@ function GetContentList(bookId) {
             var result = response.contents;
             var contentList = result
                 .replace(/\\r/g, '')
-                .replace(/\\n/g, '<br><br>')
+                .replace(/\\n/g, '<br>')
                 .replace(/\\t/g, '')
                 .replace(/tr$/gm, '')
                 .replace(/<br><br>/g, '<br>');
 
-            // 목차를 div로 감싸서 스타일 적용
+            // 목차를 div로 감싸서 스타일 적용 (높이 제한 없음)
             $('#contents-list').html('<div class="contents-text">' + contentList + '</div>');
 
-            // 토글 버튼 추가
-            if ($('.toggle-button-wrapper').length === 0) {
-                $('#contents-list').after(`
-                    <div class="toggle-button-wrapper text-center mt-2">
-                        <button class="btn btn-light btn-sm toggle-contents">
-                            <span class="expand-text">펼쳐보기</span>
-                            <span class="collapse-text" style="display:none;">접어보기</span>
-                            <i class="bi bi-chevron-down expand-icon"></i>
-                            <i class="bi bi-chevron-up collapse-icon" style="display:none;"></i>
-                        </button>
-                    </div>
-                `);
-            }
-
-            // 목차 높이 제한 및 토글 기능
-            const contentsText = $('.contents-text');
-            const originalHeight = contentsText.height();
-            const maxHeight = 200; // 최대 높이 (px)
-
-            if (originalHeight > maxHeight) {
-                // 목차가 길면 높이 제한 및 토글 버튼 표시
-                contentsText.css({
-                    'max-height': maxHeight + 'px',
-                    'overflow': 'hidden'
-                });
-
-                $('.toggle-contents').show().on('click', function () {
-                    if (contentsText.css('max-height') !== 'none') {
-                        // 펼치기
-                        contentsText.css('max-height', 'none');
-                        $('.expand-text, .expand-icon').hide();
-                        $('.collapse-text, .collapse-icon').show();
-                    } else {
-                        // 접기
-                        contentsText.css('max-height', maxHeight + 'px');
-                        $('.expand-text, .expand-icon').show();
-                        $('.collapse-text, .collapse-icon').hide();
-                    }
-                });
-            } else {
-                // 목차가 짧으면 토글 버튼 숨김
-                $('.toggle-button-wrapper').hide();
-            }
+            // 토글 버튼 숨기기
+            $('.toggle-button-wrapper').hide();
         },
         error: function (error) {
             console.error("목차 로드 실패:", error);
