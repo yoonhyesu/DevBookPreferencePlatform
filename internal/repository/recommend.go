@@ -15,15 +15,26 @@ func (m *CommonRepo) GetTagList() []model.TagList {
 		log.Println(err)
 		return []model.TagList{}
 	}
+	defer rows.Close()
+
 	all := []model.TagList{}
 	var c1 int
 	var c2 string
 	var c3 bool
 	for rows.Next() {
 		err = rows.Scan(&c1, &c2, &c3)
+		if err != nil {
+			log.Println("태그 데이터 스캔 중 오류 발생:", err)
+			continue
+		}
 		temp := model.TagList{TagID: c1, TagName: c2, DelYN: c3}
 		all = append(all, temp)
 	}
+
+	if err = rows.Err(); err != nil {
+		log.Println("태그 목록 조회 중 오류:", err)
+	}
+
 	log.Println("태그:", all)
 	return all
 }
@@ -69,7 +80,7 @@ func (m *CommonRepo) GetRecommendDevList() []model.DevInfo {
 		VIEW_YN, 
 		DEL_YN
 	FROM dbp.dev_infos
-	WHERE VIEW_YN = TRUE AND DEL_YN = FALSE`)
+	WHERE DEL_YN = FALSE`)
 
 	if err != nil {
 		log.Println(err)

@@ -41,6 +41,20 @@ ORDER BY TOP_YN DESC, CREATED_AT DESC`,
 func (m *CommonRepo) GetHomeDevBook() model.HomeDevBook {
 	var devBook model.HomeDevBook
 
+	// 먼저 표시할 개발자 한 명을 선택합니다 (랜덤 또는 특정 조건으로)
+	var devID string
+	err := m.mariaDB.Connection.QueryRow(`
+		SELECT ID 
+		FROM dbp.dev_infos 
+		WHERE VIEW_YN = 1 AND DEL_YN = 0
+		ORDER BY RAND() LIMIT 1`).Scan(&devID)
+
+	if err != nil {
+		log.Println("개발자 선택 오류:", err)
+		return model.HomeDevBook{}
+	}
+
+	// 선택된 개발자 정보와 그 개발자가 추천한 책만 조회
 	rows, err := m.mariaDB.Connection.Query(`
     SELECT 
         B.BOOK_ID,
@@ -56,7 +70,8 @@ func (m *CommonRepo) GetHomeDevBook() model.HomeDevBook {
     INNER JOIN dbp.dev_infos C ON A.DEV_ID = C.ID
     WHERE A.DEL_YN = 0 
         AND C.VIEW_YN = 1
-        AND C.DEL_YN = 0`)
+        AND C.DEL_YN = 0
+        AND C.ID = ?`, devID)
 
 	if err != nil {
 		log.Println(err)
